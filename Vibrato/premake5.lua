@@ -1,4 +1,4 @@
-project "ClefApp"
+project "Vibrato"
   kind "ConsoleApp"
   language "C++"
   cppdialect "C++17"
