@@ -18,9 +18,16 @@ namespace Clef
 
 #ifdef CLEF_RELEASE
 
-int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow)
+//#include <Windows.h>
+//
+//int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow)
+//{
+//	return Clef::Main(__argc, __argv);
+//}
+
+int main(int argc, char** argv)
 {
-	return Clef::Main(__argc, __argv);
+	return Clef::Main(argc, argv);
 }
 
 #else

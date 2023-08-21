@@ -36,6 +36,7 @@ namespace Clef
 		static VkInstance getInstance();
 		static VkPhysicalDevice getPhysicalDevice();
 		static VkDevice getDevice();
+		GLFWwindow* getWindowHandle() { return m_windowHandle; }
 
 		static VkCommandBuffer getCommandBuffer(bool begin);
 		static void flushCommandBuffer(VkCommandBuffer commandBuffer);

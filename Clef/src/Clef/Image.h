@@ -26,11 +26,13 @@ namespace Clef {
 
 		void resize(uint32_t width, uint32_t height);
 
-		uint32_t getWidth() const { return m_width; }
-		uint32_t getHeight() const { return m_height; }
+		inline uint32_t getWidth() const { return m_width; }
+		inline uint32_t getHeight() const { return m_height; }
+	
 	private:
 		void allocateMemory(uint64_t size);
 		void release();
+
 	private:
 		uint32_t m_width = 0, m_height = 0;
 

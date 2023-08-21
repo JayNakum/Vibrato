@@ -1,22 +1,30 @@
-#include "Clef/Application.h"
-#include "Clef/EntryPoint.h"
+#include "Clef.h"
 
-#include "Clef/Image.h"
-#include "Clef/Random.h"
-#include "Clef/Timer.h"
+#include "Renderer.h"
 
 using namespace Clef;
 
-class ExampleLayer : public Clef::Layer
+class Home : public Clef::Layer
 {
 public:
 	virtual void onUIRender() override
 	{
 		ImGui::Begin("Settings");
 		ImGui::Text("Last render: %.3fms", m_lastRenderTime);
+		
+		ImGui::Text("Sphere Color");
+		ImGui::SliderFloat("R", &(m_renderer.p_sphereColor.r), 0.0f, 1.0f);
+		ImGui::SliderFloat("G", &(m_renderer.p_sphereColor.g), 0.0f, 1.0f);
+		ImGui::SliderFloat("B", &(m_renderer.p_sphereColor.b), 0.0f, 1.0f);
+
+		ImGui::Text("Light Direction");
+		ImGui::SliderFloat("X", &(m_renderer.p_lightDirection.x), -1.0f, 1.0f);
+		ImGui::SliderFloat("Y", &(m_renderer.p_lightDirection.y), -1.0f, 1.0f);
+		ImGui::SliderFloat("Z", &(m_renderer.p_lightDirection.z), -1.0f, 1.0f);
+
 		if (ImGui::Button("Render"))
 		{
-			Render();
+			render();
 		}
 		ImGui::End();
 
@@ -26,38 +34,33 @@ public:
 		m_viewportWidth = ImGui::GetContentRegionAvail().x;
 		m_viewportHeight = ImGui::GetContentRegionAvail().y;
 
-		if (m_image)
-			ImGui::Image(m_image->getDescriptorSet(), { (float)m_image->getWidth(), (float)m_image->getHeight() });
+		auto image = m_renderer.getFinalImage();
+		if (image)
+			ImGui::Image(
+				image->getDescriptorSet(), 
+				{ (float)image->getWidth(), (float)image->getHeight() },
+				ImVec2(0, 1),
+				ImVec2(1, 0)
+			);
 
 		ImGui::End();
 		ImGui::PopStyleVar();
 
-		// Render();
+		render();
 	}
 
-	void Render()
+	void render()
 	{
 		Timer timer;
 
-		if (!m_image || m_viewportWidth != m_image->getWidth() || m_viewportHeight != m_image->getHeight())
-		{
-			m_image = std::make_shared<Image>(m_viewportWidth, m_viewportHeight, ImageFormat::RGBA);
-			delete[] m_imageData;
-			m_imageData = new uint32_t[m_viewportWidth * m_viewportHeight];
-		}
-
-		for (uint32_t i = 0; i < m_viewportWidth * m_viewportHeight; i++)
-		{
-			m_imageData[i] = 0xffb39373;
-		}
-
-		m_image->setData(m_imageData);
+		m_renderer.onResize(m_viewportWidth, m_viewportHeight);
+		m_renderer.render();
 
 		m_lastRenderTime = timer.elapsedMillis();
 	}
+
 private:
-	std::shared_ptr<Image> m_image;
-	uint32_t* m_imageData = nullptr;
+	Vibrato::Renderer m_renderer;
 	uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
 
 	float m_lastRenderTime = 0.0f;
@@ -69,17 +72,6 @@ Clef::Application* Clef::createApplication(int argc, char** argv)
 	spec.name = "Vibrato";
 
 	Clef::Application* app = new Clef::Application(spec);
-	app->pushLayer<ExampleLayer>();
-	app->setMenubarCallback([app]()
-		{
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::MenuItem("Exit"))
-				{
-					app->close();
-				}
-				ImGui::EndMenu();
-			}
-		});
+	app->pushLayer<Home>();
 	return app;
 }
