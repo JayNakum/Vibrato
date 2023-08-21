@@ -1,12 +1,21 @@
 #include "Clef.h"
 
+#include "Camera.h"
 #include "Renderer.h"
 
 using namespace Clef;
 
-class Home : public Clef::Layer
+class Vibrato : public Clef::Layer
 {
 public:
+	Vibrato()
+		: m_camera(45.0f, 0.1f, 100.0f) {}
+
+	virtual void onUpdate(float ts) override
+	{
+		m_camera.onUpdate(ts);
+	}
+
 	virtual void onUIRender() override
 	{
 		ImGui::Begin("Settings");
@@ -54,13 +63,16 @@ public:
 		Timer timer;
 
 		m_renderer.onResize(m_viewportWidth, m_viewportHeight);
-		m_renderer.render();
+		m_camera.onResize(m_viewportWidth, m_viewportHeight);
+		
+		m_renderer.render(m_camera);
 
 		m_lastRenderTime = timer.elapsedMillis();
 	}
 
 private:
-	Vibrato::Renderer m_renderer;
+	Camera m_camera;
+	Renderer m_renderer;
 	uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
 
 	float m_lastRenderTime = 0.0f;
@@ -72,6 +84,6 @@ Clef::Application* Clef::createApplication(int argc, char** argv)
 	spec.name = "Vibrato";
 
 	Clef::Application* app = new Clef::Application(spec);
-	app->pushLayer<Home>();
+	app->pushLayer<Vibrato>();
 	return app;
 }
