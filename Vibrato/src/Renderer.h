@@ -4,6 +4,7 @@
 
 #include "Camera.h"
 #include "Ray.h"
+#include "Scene.h"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -14,18 +15,16 @@ public:
 	Renderer() = default;
 
 	void onResize(uint32_t width, uint32_t height);
-	void render(const Camera& camera);
+	void render(const Scene& scene, const Camera& camera);
 
 	std::shared_ptr<Clef::Image> getFinalImage() const { return m_finalImage; }
 
-
-	glm::vec3 p_sphereColor = glm::vec3(0.1f, 0.6f, 1.0f);
-	glm::vec3 p_lightDirection = glm::vec3(-1, -1, -1);
-
 private:
-	glm::vec4 traceRay(const Ray& ray);
+	glm::vec4 traceRay(const Scene& scene, const Ray& ray);
 
 private:
 	std::shared_ptr<Clef::Image> m_finalImage;
 	uint32_t* m_imageData = nullptr;
+
+	const glm::vec4 clearColor = glm::vec4(0.07f, 0.07f, 0.07f, 1.0f);
 };

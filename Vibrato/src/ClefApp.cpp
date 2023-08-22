@@ -3,13 +3,32 @@
 #include "Camera.h"
 #include "Renderer.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 using namespace Clef;
 
 class Vibrato : public Clef::Layer
 {
 public:
 	Vibrato()
-		: m_camera(45.0f, 0.1f, 100.0f) {}
+		: m_camera(45.0f, 0.1f, 100.0f) 
+	{
+		{
+			Sphere sphere;
+			sphere.position = { 0.0f, 0.0f, 0.0f };
+			sphere.radius = 0.5f;
+			sphere.albedo = { 0.1f, 0.5f, 1.0f };
+			m_scene.spheres.push_back(sphere);
+		}
+
+		{
+			Sphere sphere;
+			sphere.position = { 1.0f, 0.0f, -5.0f };
+			sphere.radius = 1.5f;
+			sphere.albedo = { 1.0f, 0.0f, 1.0f };
+			m_scene.spheres.push_back(sphere);
+		}
+	}
 
 	virtual void onUpdate(float ts) override
 	{
@@ -20,21 +39,30 @@ public:
 	{
 		ImGui::Begin("Settings");
 		ImGui::Text("Last render: %.3fms", m_lastRenderTime);
-		
-		ImGui::Text("Sphere Color");
-		ImGui::SliderFloat("R", &(m_renderer.p_sphereColor.r), 0.0f, 1.0f);
-		ImGui::SliderFloat("G", &(m_renderer.p_sphereColor.g), 0.0f, 1.0f);
-		ImGui::SliderFloat("B", &(m_renderer.p_sphereColor.b), 0.0f, 1.0f);
-
-		ImGui::Text("Light Direction");
-		ImGui::SliderFloat("X", &(m_renderer.p_lightDirection.x), -1.0f, 1.0f);
-		ImGui::SliderFloat("Y", &(m_renderer.p_lightDirection.y), -1.0f, 1.0f);
-		ImGui::SliderFloat("Z", &(m_renderer.p_lightDirection.z), -1.0f, 1.0f);
 
 		if (ImGui::Button("Render"))
 		{
 			render();
 		}
+		ImGui::End();
+
+		ImGui::Begin("Scene");
+		
+		for (size_t i = 0; i < m_scene.spheres.size(); ++i)
+		{
+			ImGui::PushID(i);
+			Sphere& sphere = m_scene.spheres[i];
+
+			ImGui::Text("\nSphere %d", (i + 1));
+			ImGui::DragFloat3("Position", glm::value_ptr(sphere.position), 0.1f);
+			ImGui::DragFloat("Radius", &(sphere.radius), 0.1f);
+			ImGui::ColorEdit3("Albedo", glm::value_ptr(sphere.albedo));
+			ImGui::Text("");
+			ImGui::Separator();
+
+			ImGui::PopID();
+		}
+		
 		ImGui::End();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
@@ -65,7 +93,7 @@ public:
 		m_renderer.onResize(m_viewportWidth, m_viewportHeight);
 		m_camera.onResize(m_viewportWidth, m_viewportHeight);
 		
-		m_renderer.render(m_camera);
+		m_renderer.render(m_scene, m_camera);
 
 		m_lastRenderTime = timer.elapsedMillis();
 	}
@@ -73,6 +101,7 @@ public:
 private:
 	Camera m_camera;
 	Renderer m_renderer;
+	Scene m_scene;
 	uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
 
 	float m_lastRenderTime = 0.0f;
