@@ -23,8 +23,8 @@ public:
 
 		{
 			Sphere sphere;
-			sphere.position = { 1.0f, 0.0f, -5.0f };
-			sphere.radius = 1.5f;
+			sphere.position = { 0.0f, -9.5f, 0.0f };
+			sphere.radius = 9.0f;
 			sphere.albedo = { 1.0f, 0.0f, 1.0f };
 			m_scene.spheres.push_back(sphere);
 		}
