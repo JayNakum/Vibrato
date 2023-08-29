@@ -1,20 +1,19 @@
 #include "Clef.h"
 
-#include "Camera.h"
-#include "Renderer.h"
+#include "Vibrato/Renderer.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
 using namespace Clef;
 
-class Vibrato : public Clef::Layer
+class VibratoLayer : public Clef::Layer
 {
 public:
-	Vibrato()
+	VibratoLayer()
 		: m_camera(45.0f, 0.1f, 100.0f) 
 	{
 		{
-			Sphere sphere;
+			Vibrato::Sphere sphere;
 			sphere.position = { 0.0f, 0.0f, 0.0f };
 			sphere.radius = 0.5f;
 			sphere.albedo = { 0.1f, 0.5f, 1.0f };
@@ -22,7 +21,7 @@ public:
 		}
 
 		{
-			Sphere sphere;
+			Vibrato::Sphere sphere;
 			sphere.position = { 0.0f, -9.5f, 0.0f };
 			sphere.radius = 9.0f;
 			sphere.albedo = { 1.0f, 0.0f, 1.0f };
@@ -51,7 +50,7 @@ public:
 		for (size_t i = 0; i < m_scene.spheres.size(); ++i)
 		{
 			ImGui::PushID(i);
-			Sphere& sphere = m_scene.spheres[i];
+			Vibrato::Sphere& sphere = m_scene.spheres[i];
 
 			ImGui::Text("\nSphere %d", (i + 1));
 			ImGui::DragFloat3("Position", glm::value_ptr(sphere.position), 0.1f);
@@ -99,9 +98,9 @@ public:
 	}
 
 private:
-	Camera m_camera;
-	Renderer m_renderer;
-	Scene m_scene;
+	Vibrato::Camera m_camera;
+	Vibrato::Renderer m_renderer;
+	Vibrato::Scene m_scene;
 	uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
 
 	float m_lastRenderTime = 0.0f;
@@ -113,6 +112,6 @@ Clef::Application* Clef::createApplication(int argc, char** argv)
 	spec.name = "Vibrato";
 
 	Clef::Application* app = new Clef::Application(spec);
-	app->pushLayer<Vibrato>();
+	app->pushLayer<VibratoLayer>();
 	return app;
 }
