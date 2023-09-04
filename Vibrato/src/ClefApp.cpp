@@ -12,26 +12,35 @@ public:
 	VibratoLayer()
 		: m_camera(45.0f, 0.1f, 100.0f) 
 	{
+		Vibrato::Material& blueSphere = m_scene.materials.emplace_back();
+		blueSphere.albedo = { 0.1f, 0.5f, 1.0f };
+		blueSphere.roughness = 0.0f;
+
+		Vibrato::Material& floorSphere = m_scene.materials.emplace_back();
+		floorSphere.albedo = { 1.0f, 1.0f, 1.0f };
+		floorSphere.roughness = 0.1f;
+
 		{
 			Vibrato::Sphere sphere;
 			sphere.position = { 0.0f, 0.0f, 0.0f };
-			sphere.radius = 0.5f;
-			sphere.albedo = { 0.1f, 0.5f, 1.0f };
+			sphere.radius = 1.0f;
+			sphere.materialIndex = 0;
 			m_scene.spheres.push_back(sphere);
 		}
 
 		{
 			Vibrato::Sphere sphere;
-			sphere.position = { 0.0f, -9.5f, 0.0f };
-			sphere.radius = 9.0f;
-			sphere.albedo = { 1.0f, 0.0f, 1.0f };
+			sphere.position = { 0.0f, -101.0f, 0.0f };
+			sphere.radius = 100.0f;
+			sphere.materialIndex = 1;
 			m_scene.spheres.push_back(sphere);
 		}
 	}
 
 	virtual void onUpdate(float ts) override
 	{
-		m_camera.onUpdate(ts);
+		if (m_camera.onUpdate(ts))
+			m_renderer.resetFrameIndex();
 	}
 
 	virtual void onUIRender() override
@@ -40,9 +49,13 @@ public:
 		ImGui::Text("Last render: %.3fms", m_lastRenderTime);
 
 		if (ImGui::Button("Render"))
-		{
 			render();
-		}
+
+		ImGui::Checkbox("Accumulate Frames", &(m_renderer.getSettings().accumulate));
+		if (ImGui::Button("Reset"))
+			m_renderer.resetFrameIndex();
+		
+
 		ImGui::End();
 
 		ImGui::Begin("Scene");
@@ -55,7 +68,25 @@ public:
 			ImGui::Text("\nSphere %d", (i + 1));
 			ImGui::DragFloat3("Position", glm::value_ptr(sphere.position), 0.1f);
 			ImGui::DragFloat("Radius", &(sphere.radius), 0.1f);
-			ImGui::ColorEdit3("Albedo", glm::value_ptr(sphere.albedo));
+			ImGui::DragInt("Material", &(sphere.materialIndex), 1.0f, 0, (int)(m_scene.materials.size() - 1));
+
+			ImGui::Text("");
+			ImGui::Separator();
+
+			ImGui::PopID();
+		}
+
+		for (size_t i = 0; i < m_scene.materials.size(); ++i)
+		{
+			ImGui::PushID(i);
+			Vibrato::Material& material = m_scene.materials[i];
+
+			ImGui::Text("\nMaterial %d", (i + 1));
+
+			ImGui::ColorEdit3("Albedo", glm::value_ptr(material.albedo));
+			ImGui::DragFloat("Roughness", &(material.roughness), 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Metallic", &(material.metallic), 0.01f, 0.0f, 1.0f);
+
 			ImGui::Text("");
 			ImGui::Separator();
 

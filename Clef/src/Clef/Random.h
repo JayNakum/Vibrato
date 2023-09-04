@@ -44,7 +44,7 @@ namespace Clef
 			return glm::normalize(Vec3(-1.0f, 1.0f));
 		}
 	private:
-		static std::mt19937 s_randomEngine;
+		static thread_local std::mt19937 s_randomEngine;
 		static std::uniform_int_distribution<std::mt19937::result_type> s_distribution;
 	};
 }
