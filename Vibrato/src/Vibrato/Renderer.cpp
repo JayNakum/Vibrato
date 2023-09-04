@@ -15,6 +15,30 @@ namespace Utils
 
 		return result;
 	}
+
+	static uint32_t PCG_Hash(uint32_t input)
+	{
+		uint32_t state = input * 747796405u + 2891336453u;
+		uint32_t word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+		return (word >> 22u) ^ word;
+	}
+	
+	static float randomFloat(uint32_t& seed)
+	{
+		seed = PCG_Hash(seed);
+		return (float)seed / (float)std::numeric_limits<uint32_t>::max();
+	}
+
+	static glm::vec3 InUnitSphere(uint32_t& seed)
+	{
+		// x * 2.0f - 1.0f -> to get it between -1 to 1
+		return glm::normalize(glm::vec3(
+			randomFloat(seed) * 2.0f - 1.0f, 
+			randomFloat(seed) * 2.0f - 1.0f, 
+			randomFloat(seed) * 2.0f - 1.0f)
+		);
+	}
+
 }
 
 
@@ -127,39 +151,41 @@ namespace Vibrato
 		ray.origin = m_activeCamera->getPosition();
 		ray.direction = m_activeCamera->getRayDirections()[x + y * m_finalImage->getWidth()];
 
-		glm::vec3 color(0.0f);
-		float multiplier = 1.0f;
+		glm::vec3 light(0.0f);
+		glm::vec3 contribution(1.0f); // throughput
+
+		uint32_t seed = x + y * m_finalImage->getWidth();
+		seed *= m_frameIndex;
 
 		int bounces = 5;
 		for (int i = 0; i < bounces; i++)
 		{
+			seed += i;
+
 			Renderer::HitPayload payload = traceRay(ray);
 			if (payload.hitDistance < 0)
 			{
-				glm::vec3 skyColor = glm::vec3(0.6f, 0.7f, 0.9f);
-				color += skyColor * multiplier;
+				glm::vec3 skyColor = CLEAR_COLOR;
+				light += skyColor * contribution;
 				break;
 			}
-
-			glm::vec3 lightDirection = glm::normalize(glm::vec3(-1));
-			float lightIntensity = glm::max(glm::dot(payload.worldNormal, -lightDirection), 0.0f);
 
 			const Sphere& closestSphere = m_activeScene->spheres[payload.objectIndex];
 			const Material& material = m_activeScene->materials[closestSphere.materialIndex];
 
-
-			glm::vec3 sphereColor = material.albedo;
-			sphereColor *= lightIntensity;
-			color += sphereColor * multiplier;
-
-			multiplier *= 0.5f;
+			contribution *= material.albedo;
+			light += material.emission() * material.albedo;
 
 			ray.origin = payload.worldPosition + payload.worldNormal * 0.0001f;
-			ray.direction = glm::reflect(ray.direction, 
-											payload.worldNormal + material.roughness * Clef::Random::Vec3(-0.5f, 0.5f));
+			
+			// ray.direction = glm::reflect(ray.direction, 
+			// 								payload.worldNormal + material.roughness * Clef::Random::Vec3(-0.5f, 0.5f));
+			
+			// ray.direction = glm::normalize(payload.worldNormal + Clef::Random::InUnitSphere());
+			ray.direction = glm::normalize(payload.worldNormal + Utils::InUnitSphere(seed));
 		}
 
-		return glm::vec4(color, 1.0f);
+		return glm::vec4(light, 1.0f);
 	}
 
 	Renderer::HitPayload Renderer::traceRay(const Ray& ray)

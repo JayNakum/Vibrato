@@ -20,11 +20,25 @@ public:
 		floorSphere.albedo = { 1.0f, 1.0f, 1.0f };
 		floorSphere.roughness = 0.1f;
 
+		Vibrato::Material& orangeSphere = m_scene.materials.emplace_back();
+		orangeSphere.albedo = { 0.8f, 0.5f, 0.2f };
+		orangeSphere.roughness = 0.1f;
+		orangeSphere.emissionColor = orangeSphere.albedo;
+		orangeSphere.emissionPower = 20.0f ;
+
 		{
 			Vibrato::Sphere sphere;
 			sphere.position = { 0.0f, 0.0f, 0.0f };
 			sphere.radius = 1.0f;
 			sphere.materialIndex = 0;
+			m_scene.spheres.push_back(sphere);
+		}
+
+		{
+			Vibrato::Sphere sphere;
+			sphere.position = { 32.0f, 3.0f, -32.0f };
+			sphere.radius = 20.0f;
+			sphere.materialIndex = 2;
 			m_scene.spheres.push_back(sphere);
 		}
 
@@ -86,6 +100,9 @@ public:
 			ImGui::ColorEdit3("Albedo", glm::value_ptr(material.albedo));
 			ImGui::DragFloat("Roughness", &(material.roughness), 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Metallic", &(material.metallic), 0.01f, 0.0f, 1.0f);
+
+			ImGui::ColorEdit3("Emission Color", glm::value_ptr(material.emissionColor));
+			ImGui::DragFloat("Emission Power", &(material.emissionPower), 0.01f, 0.0f, FLT_MAX);
 
 			ImGui::Text("");
 			ImGui::Separator();
