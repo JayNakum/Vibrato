@@ -46,7 +46,6 @@ namespace Vibrato
 {
 	void Renderer::onResize(uint32_t width, uint32_t height)
 	{
-
 		if (m_finalImage)
 		{
 			if (m_finalImage->getWidth() == width && m_finalImage->getHeight() == height)
@@ -147,16 +146,16 @@ namespace Vibrato
 
 	glm::vec4 Renderer::perPixel(uint32_t x, uint32_t y)
 	{
-		Ray ray;
-		ray.origin = m_activeCamera->getPosition();
-		ray.direction = m_activeCamera->getRayDirections()[x + y * m_finalImage->getWidth()];
+		uint32_t seed = x + y * m_finalImage->getWidth();
+		seed *= m_frameIndex;
 
 		glm::vec3 light(0.0f);
 		glm::vec3 contribution(1.0f); // throughput
 
-		uint32_t seed = x + y * m_finalImage->getWidth();
-		seed *= m_frameIndex;
 
+		Ray ray;
+		ray.origin = m_activeCamera->getPosition();
+		ray.direction = m_activeCamera->getRayDirections()[x + y * m_finalImage->getWidth()];
 		int bounces = 5;
 		for (int i = 0; i < bounces; i++)
 		{
@@ -165,7 +164,9 @@ namespace Vibrato
 			Renderer::HitPayload payload = traceRay(ray);
 			if (payload.hitDistance < 0)
 			{
-				glm::vec3 skyColor = CLEAR_COLOR;
+				//glm::vec3 unit_direction = glm::normalize(ray.direction);
+				float a = 0.5 * (glm::normalize(ray.direction).y + 1.0);
+				glm::vec3 skyColor = (1.0f - a) * glm::vec3(1.0) + a * glm::vec3(0.5, 0.7, 1.0);
 				light += skyColor * contribution;
 				break;
 			}
@@ -176,13 +177,12 @@ namespace Vibrato
 			contribution *= material.albedo;
 			light += material.emission() * material.albedo;
 
-			ray.origin = payload.worldPosition + payload.worldNormal * 0.0001f;
+			ray.origin = payload.position + payload.normal * 0.0001f;
 			
 			// ray.direction = glm::reflect(ray.direction, 
-			// 								payload.worldNormal + material.roughness * Clef::Random::Vec3(-0.5f, 0.5f));
-			
-			// ray.direction = glm::normalize(payload.worldNormal + Clef::Random::InUnitSphere());
-			ray.direction = glm::normalize(payload.worldNormal + Utils::InUnitSphere(seed));
+			// 								payload.normal + material.roughness * Clef::Random::Vec3(-0.5f, 0.5f));
+			// ray.direction = glm::normalize(payload.normal + Clef::Random::InUnitSphere());
+			ray.direction = glm::normalize(payload.normal + Utils::InUnitSphere(seed));
 		}
 
 		return glm::vec4(light, 1.0f);
@@ -191,36 +191,24 @@ namespace Vibrato
 	Renderer::HitPayload Renderer::traceRay(const Ray& ray)
 	{
 		float hitDistance = std::numeric_limits<float>::max();
-		int closestSphere = -1;
+		int closestObject = -1;
 
 		for (size_t i = 0; i < m_activeScene->spheres.size(); i++)
 		{
 			const Sphere& sphere = m_activeScene->spheres[i];
-			glm::vec3 origin = ray.origin - sphere.position;
-
-			float a = glm::dot(ray.direction, ray.direction);
-			float b = 2.0f * glm::dot(origin, ray.direction);
-			float c = glm::dot(origin, origin) - (sphere.radius * sphere.radius);
-
-			float discriminant = b * b - 4 * a * c;
-
-			if (discriminant < 0.0f)
-				continue;
-
-			// float t0 = (-b + glm::sqrt(discriminant)) / (2.0f * a);
-			float closestT = (-b - glm::sqrt(discriminant)) / (2.0f * a);
+			
+			float closestT = sphere.hit(ray);
 			if (closestT > 0.0f && closestT < hitDistance)
 			{
 				hitDistance = closestT;
-				closestSphere = (int)i;
+				closestObject = (int)i;
 			}
-
 		}
 
-		if (closestSphere < 0)
+		if (closestObject < 0)
 			return miss(ray);
 
-		return closestHit(ray, hitDistance, closestSphere);
+		return closestHit(ray, hitDistance, closestObject);
 	}
 
 	Renderer::HitPayload Renderer::closestHit(const Ray& ray, float hitDistance, int objectIndex)
@@ -229,14 +217,14 @@ namespace Vibrato
 		payload.hitDistance = hitDistance;
 		payload.objectIndex = objectIndex;
 
-		const Sphere& closestSphere = m_activeScene->spheres[objectIndex];
+		const Hittable& closestObject = m_activeScene->spheres[objectIndex];
 
-		glm::vec3 origin = ray.origin - closestSphere.position;
+		glm::vec3 origin = ray.origin - closestObject.position;
 
-		payload.worldPosition = origin + ray.direction * hitDistance;
-		payload.worldNormal = glm::normalize(payload.worldPosition);
+		payload.position = origin + ray.direction * hitDistance;
+		payload.normal = glm::normalize(payload.position);
 
-		payload.worldPosition += closestSphere.position;
+		payload.position += closestObject.position;
 
 		return payload;
 	}

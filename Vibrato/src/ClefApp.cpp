@@ -36,17 +36,17 @@ public:
 
 		{
 			Vibrato::Sphere sphere;
-			sphere.position = { 32.0f, 3.0f, -32.0f };
-			sphere.radius = 20.0f;
-			sphere.materialIndex = 2;
+			sphere.position = { 0.0f, -101.0f, 0.0f };
+			sphere.radius = 100.0f;
+			sphere.materialIndex = 1;
 			m_scene.spheres.push_back(sphere);
 		}
 
 		{
 			Vibrato::Sphere sphere;
-			sphere.position = { 0.0f, -101.0f, 0.0f };
-			sphere.radius = 100.0f;
-			sphere.materialIndex = 1;
+			sphere.position = { 32.0f, 3.0f, -32.0f };
+			sphere.radius = 20.0f;
+			sphere.materialIndex = 2;
 			m_scene.spheres.push_back(sphere);
 		}
 	}
@@ -59,7 +59,7 @@ public:
 
 	virtual void onUIRender() override
 	{
-		ImGui::Begin("Settings");
+		ImGui::Begin("Tunings");
 		ImGui::Text("Last render: %.3fms", m_lastRenderTime);
 
 		if (ImGui::Button("Render"))

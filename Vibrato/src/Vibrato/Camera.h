@@ -28,6 +28,7 @@ namespace Vibrato
 		void recalculateProjection();
 		void recalculateView();
 		void recalculateRayDirections();
+
 	private:
 		glm::mat4 m_projection{ 1.0f };
 		glm::mat4 m_view{ 1.0f };

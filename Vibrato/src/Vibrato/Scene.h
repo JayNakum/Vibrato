@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Hittables.h"
+
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -16,14 +18,6 @@ namespace Vibrato
 		float emissionPower = 0.0f;
 
 		glm::vec3 emission() const { return emissionColor * emissionPower; }
-	};
-
-	struct Sphere
-	{
-		glm::vec3 position{ 0.0f };
-		float radius = 0.5f;
-
-		int materialIndex = 0;
 	};
 
 	struct Scene
