@@ -1,46 +1,7 @@
 #include "Renderer.h"
 
 #include "Clef/Random.h"
-
-namespace Utils
-{
-	static uint32_t convertToRGBA(const glm::vec4& color)
-	{
-		uint8_t r = (uint8_t)(color.r * 255.0f);
-		uint8_t g = (uint8_t)(color.g * 255.0f);
-		uint8_t b = (uint8_t)(color.b * 255.0f);
-		uint8_t a = (uint8_t)(color.a * 255.0f);
-
-		uint32_t result = (a << 24) | (b << 16) | (g << 8) | r;
-
-		return result;
-	}
-
-	static uint32_t PCG_Hash(uint32_t input)
-	{
-		uint32_t state = input * 747796405u + 2891336453u;
-		uint32_t word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
-		return (word >> 22u) ^ word;
-	}
-	
-	static float randomFloat(uint32_t& seed)
-	{
-		seed = PCG_Hash(seed);
-		return (float)seed / (float)std::numeric_limits<uint32_t>::max();
-	}
-
-	static glm::vec3 InUnitSphere(uint32_t& seed)
-	{
-		// x * 2.0f - 1.0f -> to get it between -1 to 1
-		return glm::normalize(glm::vec3(
-			randomFloat(seed) * 2.0f - 1.0f, 
-			randomFloat(seed) * 2.0f - 1.0f, 
-			randomFloat(seed) * 2.0f - 1.0f)
-		);
-	}
-
-}
-
+#include "Utils.h"
 
 namespace Vibrato
 {
@@ -135,7 +96,6 @@ namespace Vibrato
 
 #endif
 
-
 		m_finalImage->setData(m_imageData);
 
 		if (m_settings.accumulate)
@@ -152,38 +112,51 @@ namespace Vibrato
 		glm::vec3 light(0.0f);
 		glm::vec3 contribution(1.0f); // throughput
 
-
-		Ray ray;
-		ray.origin = m_activeCamera->getPosition();
-		ray.direction = m_activeCamera->getRayDirections()[x + y * m_finalImage->getWidth()];
-		int bounces = 5;
-		for (int i = 0; i < bounces; i++)
+		const int samples = 3;
+		for (size_t s = 0 ; s < samples ; s++)
 		{
-			seed += i;
+			Ray ray;
 
-			Renderer::HitPayload payload = traceRay(ray);
-			if (payload.hitDistance < 0)
-			{
-				//glm::vec3 unit_direction = glm::normalize(ray.direction);
-				float a = 0.5 * (glm::normalize(ray.direction).y + 1.0);
-				glm::vec3 skyColor = (1.0f - a) * glm::vec3(1.0) + a * glm::vec3(0.5, 0.7, 1.0);
-				light += skyColor * contribution;
-				break;
-			}
-
-			const Sphere& closestSphere = m_activeScene->spheres[payload.objectIndex];
-			const Material& material = m_activeScene->materials[closestSphere.materialIndex];
-
-			contribution *= material.albedo;
-			light += material.emission() * material.albedo;
-
-			ray.origin = payload.position + payload.normal * 0.0001f;
+			ray.origin = m_activeCamera->getPosition();
 			
-			// ray.direction = glm::reflect(ray.direction, 
-			// 								payload.normal + material.roughness * Clef::Random::Vec3(-0.5f, 0.5f));
-			// ray.direction = glm::normalize(payload.normal + Clef::Random::InUnitSphere());
-			ray.direction = glm::normalize(payload.normal + Utils::InUnitSphere(seed));
+			float jx = (float)x + Utils::randomFloat(seed);
+			float jy = (float)y + Utils::randomFloat(seed);
+			ray.direction = m_activeCamera->getRayDirection(jx, jy);
+
+			int bounces = 5;
+			for (int i = 0; i < bounces; i++)
+			{
+				seed += i;
+
+				Renderer::HitPayload payload = traceRay(ray);
+				if (payload.hitDistance < 0)
+				{
+					//glm::vec3 unit_direction = glm::normalize(ray.direction);
+					float a = 0.5 * (glm::normalize(ray.direction).y + 1.0);
+					glm::vec3 skyColor = (1.0f - a) * glm::vec3(1.0) + a * glm::vec3(0.5, 0.7, 1.0);
+					light += skyColor * contribution;
+					break;
+				}
+
+				const Sphere& closestSphere = m_activeScene->spheres[payload.objectIndex];
+				const Material& material = m_activeScene->materials[closestSphere.materialIndex];
+
+				contribution *= material.albedo;
+				light += material.emission() * material.albedo;
+
+				ray.origin = payload.position + payload.normal * 0.0001f;
+
+				// ray.direction = glm::reflect(ray.direction, 
+				// 								payload.normal + material.roughness * Clef::Random::Vec3(-0.5f, 0.5f));
+				// ray.direction = glm::normalize(payload.normal + Clef::Random::InUnitSphere());
+				ray.direction = glm::normalize(payload.normal + Utils::InUnitSphere(seed));
+			}
 		}
+
+		float scale = 1.0f / samples;
+		light.r = std::sqrt(scale * light.r);
+		light.g = std::sqrt(scale * light.g);
+		light.b = std::sqrt(scale * light.b);
 
 		return glm::vec4(light, 1.0f);
 	}

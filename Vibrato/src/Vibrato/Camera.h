@@ -21,13 +21,12 @@ namespace Vibrato
 		inline const glm::vec3& getPosition() const { return m_position; }
 		inline const glm::vec3& getDirection() const { return m_forwardDirection; }
 
-		inline const std::vector<glm::vec3>& getRayDirections() const { return m_rayDirections; }
-
+		glm::vec3 getRayDirection(float x, float y) const;
+		
 		float getRotationSpeed();
 	private:
 		void recalculateProjection();
 		void recalculateView();
-		void recalculateRayDirections();
 
 	private:
 		glm::mat4 m_projection{ 1.0f };
@@ -41,9 +40,6 @@ namespace Vibrato
 
 		glm::vec3 m_position{ 0.0f, 0.0f, 0.0f };
 		glm::vec3 m_forwardDirection{ 0.0f, 0.0f, 0.0f };
-
-		// Cached ray directions
-		std::vector<glm::vec3> m_rayDirections;
 
 		glm::vec2 m_lastMousePosition{ 0.0f, 0.0f };
 

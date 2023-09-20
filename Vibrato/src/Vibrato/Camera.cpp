@@ -86,7 +86,6 @@ namespace Vibrato
 		if (moved)
 		{
 			recalculateView();
-			recalculateRayDirections();
 		}
 
 		return moved;
@@ -101,7 +100,6 @@ namespace Vibrato
 		m_viewportHeight = height;
 
 		recalculateProjection();
-		recalculateRayDirections();
 	}
 
 	float Camera::getRotationSpeed()
@@ -121,21 +119,13 @@ namespace Vibrato
 		m_inverseView = glm::inverse(m_view);
 	}
 
-	void Camera::recalculateRayDirections()
+	glm::vec3 Camera::getRayDirection(float x, float y) const
 	{
-		m_rayDirections.resize(m_viewportWidth * m_viewportHeight);
+		glm::vec2 coord = { (float)x / (float)m_viewportWidth, (float)y / (float)m_viewportHeight };
+		coord = coord * 2.0f - 1.0f; // -1 -> 1
 
-		for (uint32_t y = 0; y < m_viewportHeight; y++)
-		{
-			for (uint32_t x = 0; x < m_viewportWidth; x++)
-			{
-				glm::vec2 coord = { (float)x / (float)m_viewportWidth, (float)y / (float)m_viewportHeight };
-				coord = coord * 2.0f - 1.0f; // -1 -> 1
-
-				glm::vec4 target = m_inverseProjection * glm::vec4(coord.x, coord.y, 1, 1);
-				glm::vec3 rayDirection = glm::vec3(m_inverseView * glm::vec4(glm::normalize(glm::vec3(target) / target.w), 0)); // World space
-				m_rayDirections[x + y * m_viewportWidth] = rayDirection;
-			}
-		}
+		glm::vec4 target = m_inverseProjection * glm::vec4(coord.x, coord.y, 1, 1);
+		glm::vec3 rayDirection = glm::vec3(m_inverseView * glm::vec4(glm::normalize(glm::vec3(target) / target.w), 0)); // World space
+		return rayDirection;
 	}
 }
