@@ -32,6 +32,9 @@ namespace Vibrato
 
 		Settings& getSettings() { return m_settings; }
 
+		int samplesPerPixel = 3;
+		int bounces = 10;
+
 	private:
 		struct HitPayload
 		{

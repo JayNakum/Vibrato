@@ -112,18 +112,17 @@ namespace Vibrato
 		glm::vec3 light(0.0f);
 		glm::vec3 contribution(1.0f); // throughput
 
-		const int samples = 3;
-		for (size_t s = 0 ; s < samples ; s++)
+		for (size_t s = 0 ; s < samplesPerPixel ; s++)
 		{
 			Ray ray;
 
 			ray.origin = m_activeCamera->getPosition();
 			
-			float jx = (float)x + Utils::randomFloat(seed);
-			float jy = (float)y + Utils::randomFloat(seed);
+			float jx = samplesPerPixel > 1 ? (float)x + Utils::randomFloat(seed) : (float)x;
+			float jy = samplesPerPixel > 1 ? (float)y + Utils::randomFloat(seed) : (float)y;
+
 			ray.direction = m_activeCamera->getRayDirection(jx, jy);
 
-			int bounces = 5;
 			for (int i = 0; i < bounces; i++)
 			{
 				seed += i;
@@ -131,9 +130,9 @@ namespace Vibrato
 				Renderer::HitPayload payload = traceRay(ray);
 				if (payload.hitDistance < 0)
 				{
-					//glm::vec3 unit_direction = glm::normalize(ray.direction);
 					float a = 0.5 * (glm::normalize(ray.direction).y + 1.0);
 					glm::vec3 skyColor = (1.0f - a) * glm::vec3(1.0) + a * glm::vec3(0.5, 0.7, 1.0);
+					// glm::vec3 skyColor = CLEAR_COLOR;
 					light += skyColor * contribution;
 					break;
 				}
@@ -149,11 +148,22 @@ namespace Vibrato
 				// ray.direction = glm::reflect(ray.direction, 
 				// 								payload.normal + material.roughness * Clef::Random::Vec3(-0.5f, 0.5f));
 				// ray.direction = glm::normalize(payload.normal + Clef::Random::InUnitSphere());
-				ray.direction = glm::normalize(payload.normal + Utils::InUnitSphere(seed));
+				ray.direction = glm::normalize(
+					glm::reflect(
+						ray.direction, 
+						payload.normal + material.roughness * Utils::InUnitSphere(seed)
+					) + material.fuzz * Utils::InUnitSphere(seed)
+				);
+				
+				auto z = 1e-8;
+				if ((fabs(ray.direction[0]) < z) && (fabs(ray.direction[1]) < z) && (fabs(ray.direction[2]) < z))
+				{
+					ray.direction = payload.normal;
+				}
 			}
 		}
 
-		float scale = 1.0f / samples;
+		float scale = 1.0f / samplesPerPixel;
 		light.r = std::sqrt(scale * light.r);
 		light.g = std::sqrt(scale * light.g);
 		light.b = std::sqrt(scale * light.b);
