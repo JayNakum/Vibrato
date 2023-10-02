@@ -3,6 +3,11 @@
 #include "Clef/Random.h"
 #include "Utils.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
+#include <iostream>
+
 namespace Vibrato
 {
 	static double reflectance(double cosine, double ref_idx)
@@ -110,6 +115,12 @@ namespace Vibrato
 			m_frameIndex++;
 		else
 			m_frameIndex = 1;
+	}
+
+	void Renderer::screenshot()
+	{
+		stbi_write_jpg("./render.jpg", m_finalImage->getWidth(), m_finalImage->getHeight(), 4, m_imageData, 1000);
+		std::cout << "File <render.jpg> saved." << std::endl;
 	}
 
 	glm::vec4 Renderer::perPixel(uint32_t x, uint32_t y)

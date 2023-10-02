@@ -1,6 +1,7 @@
 #include "Clef.h"
 
 #include "Vibrato/Renderer.h"
+#include "Vibrato/Utils.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -10,63 +11,88 @@ class VibratoLayer : public Clef::Layer
 {
 public:
 	VibratoLayer()
-		: m_camera(45.0f, 0.1f, 100.0f) 
-	{
-		Vibrato::Material& emissive = m_scene.materials.emplace_back();
-		emissive.albedo = { 0.8f, 0.5f, 0.2f };
-		emissive.emissionColor = { 0.8f, 0.5f, 0.2f };
-		emissive.emissionPower = 3.0f;
+		: m_camera(20.0f, 0.1f, 100.0f) 
+	{	
+		Vibrato::Material& groundMaterial = m_scene.materials.emplace_back();
+		groundMaterial.albedo = { 0.5f, 0.5f, 0.5f };
+		{
+			Vibrato::Sphere sphere;
+			sphere.position = { 0.0f, -1000.0f, 0.0f };
+			sphere.radius = 1000.0f;
+			sphere.materialIndex = (int)(m_scene.materials.size() - 1);
+			m_scene.spheres.push_back(sphere);
+		}
+
+		{
+			const int x = 3;
+			for (int a = -x; a < x; a++)
+			{
+				uint32_t seed = a * 2003;
+				for (int b = -x; b < x; b++)
+				{
+					float chooseMat = Utils::randomFloat(seed);
+					glm::vec3 pos{ a + 0.9 * Utils::randomFloat(seed), 0.2, b + 0.9 * Utils::randomFloat(seed) };
+					if ((pos - glm::vec3(4, 0.2, 0)).length() > 0.9)
+					{
+						Vibrato::Material& sphereMaterial = m_scene.materials.emplace_back();
+
+						if (chooseMat < 0.8)
+						{
+							// diffuse
+							sphereMaterial.albedo = glm::vec3(Utils::randomFloat(seed), Utils::randomFloat(seed), Utils::randomFloat(seed));
+						}
+						else if (chooseMat < 0.95)
+						{
+							// metal
+							sphereMaterial.albedo = glm::vec3(Utils::randomFloat(seed, 0.5, 1), Utils::randomFloat(seed, 0.5, 1), Utils::randomFloat(seed, 0.5, 1));
+							sphereMaterial.fuzz = Utils::randomFloat(seed, 0, 0.5);
+						}
+						else
+						{
+							// glass
+							sphereMaterial.refractiveIndex = 1.5f;
+						}
+						
+						Vibrato::Sphere sphere;
+						sphere.position = pos;
+						sphere.radius = 0.2f;
+						sphere.materialIndex = (int)(m_scene.materials.size() - 1);
+						m_scene.spheres.push_back(sphere);
+					}
+				}
+			}
+		}
+
+		Vibrato::Material& dielectric = m_scene.materials.emplace_back();
+		dielectric.refractiveIndex = 1.5f;
+		{
+			Vibrato::Sphere sphere;
+			sphere.position = { 0.0f, 1.0f, 0.0f };
+			sphere.radius = 1.0f;
+			sphere.materialIndex = (int)(m_scene.materials.size() - 1);
+			m_scene.spheres.push_back(sphere);
+		}
+
+		Vibrato::Material& lambertian = m_scene.materials.emplace_back();
+		lambertian.albedo = { 0.4f, 0.2f, 0.1f };
+		{
+			Vibrato::Sphere sphere;
+			sphere.position = { -4.0f, 1.0f, 0.0f };
+			sphere.radius = 1.0f;
+			sphere.materialIndex = (int)(m_scene.materials.size() - 1);
+			m_scene.spheres.push_back(sphere);
+		}
 
 		Vibrato::Material& metal = m_scene.materials.emplace_back();
-		metal.roughness = 0.1f;
-		metal.albedo = { 0.7f, 0.7f, 0.7f };
-
-		Vibrato::Material& glass = m_scene.materials.emplace_back();
-		glass.refractiveIndex = 1.5f;
-
-		Vibrato::Material& diffuse = m_scene.materials.emplace_back();
-		diffuse.albedo = { 0.4f, 0.8f, 0.6f };
-
-
+		metal.albedo = { 0.7f, 0.6f, 0.5f };
+		metal.roughness = 0.0f;
 		{
 			Vibrato::Sphere sphere;
-			sphere.position = { 0.0f, 0.0f, -5.0f };
+			sphere.position = { 4.0f, 1.0f, 0.0f };
 			sphere.radius = 1.0f;
-			sphere.materialIndex = 0;
+			sphere.materialIndex = (int)(m_scene.materials.size() - 1);
 			m_scene.spheres.push_back(sphere);
 		}
-
-		{
-			Vibrato::Sphere sphere;
-			sphere.position = { -1.5f, 0.0f, 0.0f };
-			sphere.radius = 1.0f;
-			sphere.materialIndex = 1;
-			m_scene.spheres.push_back(sphere);
-		}
-
-		{
-			Vibrato::Sphere sphere;
-			sphere.position = { 1.5f, 0.0f, 0.0f };
-			sphere.radius = 1.0f;
-			sphere.materialIndex = 2;
-			m_scene.spheres.push_back(sphere);
-		}
-		{
-			Vibrato::Sphere sphere;
-			sphere.position = { 1.5f, 0.0f, 0.0f };
-			sphere.radius = -0.9f;
-			sphere.materialIndex = 2;
-			m_scene.spheres.push_back(sphere);
-		}
-
-		{
-			Vibrato::Sphere sphere;
-			sphere.position = { 0.0f, -101.0f, 0.0f };
-			sphere.radius = 100.0f;
-			sphere.materialIndex = 3;
-			m_scene.spheres.push_back(sphere);
-		}
-
 	}
 
 	virtual void onUpdate(float ts) override
@@ -81,7 +107,9 @@ public:
 
 		auto& settings = m_renderer.getSettings();
 
-		ImGui::Text("Render Time: %d FPS (%.3fms)", (int)(1000 / m_lastRenderTime), m_lastRenderTime);
+		ImGui::Text("Render Time: %.3fms", m_lastRenderTime); ImGui::SameLine();
+		ImGui::Text("%d FPS", (int)(1000 / m_lastRenderTime));
+
 		ImGui::Checkbox("Accumulate Frames", &(settings.accumulate));
 
 		ImGui::InputInt("Rays Per Pixel", &(settings.samplesPerPixel));
@@ -92,45 +120,95 @@ public:
 			m_renderer.resetFrameIndex();
 			render();
 		}
+		ImGui::SameLine();
+		if (ImGui::Button("Save"))
+		{
+			m_renderer.screenshot();
+		}
+
 
 		ImGui::End();
 
 		ImGui::Begin("Scene");
 		
-		for (size_t i = 0; i < m_scene.spheres.size(); ++i)
+		if (ImGui::TreeNode("Objects"))
 		{
-			ImGui::PushID(i);
-			Vibrato::Sphere& sphere = m_scene.spheres[i];
+			for (size_t i = 0; i < m_scene.spheres.size(); ++i)
+			{
+				ImGui::PushID(i);
+				Vibrato::Sphere& sphere = m_scene.spheres[i];
 
-			ImGui::Text("\nSphere %d", (i + 1));
-			ImGui::DragFloat3("Position", glm::value_ptr(sphere.position), 0.1f);
-			ImGui::DragFloat("Radius", &(sphere.radius), 0.1f, 0.0f);
-			ImGui::DragInt("Material", &(sphere.materialIndex), 1.0f, 0, (int)(m_scene.materials.size() - 1));
+				ImGui::Text("\nSphere %d", (i + 1));
+				ImGui::DragFloat3("Position", glm::value_ptr(sphere.position), 0.1f);
+				ImGui::DragFloat("Radius", &(sphere.radius), 0.1f, 0.0f);
+				ImGui::DragInt("Material", &(sphere.materialIndex), 1.0f, 0, (int)(m_scene.materials.size() - 1));
 
-			ImGui::Text("");
-			ImGui::Separator();
+				ImGui::Text("");
+				ImGui::Separator();
 
-			ImGui::PopID();
+				ImGui::PopID();
+			}
+			ImGui::TreePop();
 		}
 
-		for (size_t i = 0; i < m_scene.materials.size(); ++i)
+		if (ImGui::TreeNode("Materials"))
 		{
-			ImGui::PushID(i);
-			Vibrato::Material& material = m_scene.materials[i];
+			for (size_t i = 0; i < m_scene.materials.size(); ++i)
+			{
+				ImGui::PushID(i);
+				Vibrato::Material& material = m_scene.materials[i];
 
-			ImGui::Text("\nMaterial Index %d", i);
+				ImGui::Text("\nMaterial Index %d", i);
 
-			ImGui::ColorEdit3("Albedo", glm::value_ptr(material.albedo));
-			ImGui::DragFloat("Roughness", &(material.roughness), 0.01f, 0.0f, 1.0f);
-			ImGui::DragFloat("Metallic", &(material.fuzz), 0.01f, 0.0f, 1.0f);
+				if (ImGui::Button("Diffuse"))
+				{
+					material.reset();
+				} ImGui::SameLine();
 
-			ImGui::ColorEdit3("Emission Color", glm::value_ptr(material.emissionColor));
-			ImGui::DragFloat("Emission Power", &(material.emissionPower), 0.01f, 0.0f, FLT_MAX);
+				if (ImGui::Button("Metal"))
+				{
+					material.reset();
+					material.roughness = 0.0f;
+				} ImGui::SameLine();
 
-			ImGui::Text("");
-			ImGui::Separator();
+				if (ImGui::Button("Glass"))
+				{
+					material.reset();
+					material.albedo.r = 1.0f;
+					material.albedo.g = 1.0f;
+					material.albedo.b = 1.0f;
+					material.roughness = 0.0f;
+					material.refractiveIndex = 1.5f;
+				}
 
-			ImGui::PopID();
+				if (ImGui::TreeNode("Advance"))
+				{
+
+					ImGui::ColorEdit3("Albedo", glm::value_ptr(material.albedo));
+					ImGui::DragFloat("Roughness", &(material.roughness), 0.01f, 0.0f, 1.0f);
+					ImGui::DragFloat("Metallic", &(material.fuzz), 0.01f, 0.0f, 1.0f);
+					ImGui::DragFloat("Refraction Index", &(material.refractiveIndex), 0.01f, 0.0f, FLT_MAX);
+
+					ImGui::ColorEdit3("Emission Color", glm::value_ptr(material.emissionColor));
+					ImGui::DragFloat("Emission Power", &(material.emissionPower), 0.01f, 0.0f, FLT_MAX);
+
+					if (ImGui::Button("Reset Material"))
+					{
+						material.reset();
+						material.albedo.r = 1.0f;
+						material.albedo.g = 1.0f;
+						material.albedo.b = 1.0f;
+					}
+					ImGui::TreePop();
+				}
+
+
+				ImGui::Text("");
+				ImGui::Separator();
+
+				ImGui::PopID();
+			}
+			ImGui::TreePop();
 		}
 		
 		ImGui::End();

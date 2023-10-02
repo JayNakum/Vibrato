@@ -29,13 +29,19 @@ namespace Utils
 		return (float)seed / (float)std::numeric_limits<uint32_t>::max();
 	}
 
+	static float randomFloat(uint32_t& seed, float min, float max)
+	{
+		seed = PCG_Hash(seed);
+		return (min + (max - min)) * ((float)seed / (float)std::numeric_limits<uint32_t>::max());
+	}
+
 	static glm::vec3 InUnitSphere(uint32_t& seed)
 	{
 		// x * 2.0f - 1.0f -> to get it between -1 to 1
 		return glm::normalize(glm::vec3(
 			randomFloat(seed) * 2.0f - 1.0f,
 			randomFloat(seed) * 2.0f - 1.0f,
-			randomFloat(seed) * 2.0f - 1.0f)
-		);
+			randomFloat(seed) * 2.0f - 1.0f
+		));
 	}
 }

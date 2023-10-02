@@ -16,10 +16,24 @@ namespace Vibrato
 
 		float refractiveIndex = 0.0f;
 
-		glm::vec3 emissionColor{ 0.0f };
+		glm::vec3 emissionColor{ 1.0f };
 		float emissionPower = 0.0f;
 
 		glm::vec3 emission() const { return emissionColor * emissionPower; }
+
+		void reset()
+		{
+			roughness = 1.0f;
+			fuzz = 0.0f;
+
+			refractiveIndex = 0.0f;
+
+			emissionColor.r = 1.0f;
+			emissionColor.g = 1.0f;
+			emissionColor.b = 1.0f;
+
+			emissionPower = 0.0f;
+		}
 	};
 
 	struct Scene

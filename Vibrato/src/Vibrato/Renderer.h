@@ -29,6 +29,7 @@ namespace Vibrato
 		void render(const Scene& scene, const Camera& camera);
 
 		std::shared_ptr<Clef::Image> getFinalImage() const { return m_finalImage; }
+		void screenshot();
 
 		void resetFrameIndex() { m_frameIndex = 1; }
 
