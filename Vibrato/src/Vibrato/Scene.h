@@ -14,6 +14,8 @@ namespace Vibrato
 		float roughness = 1.0f;
 		float fuzz = 0.0f;
 
+		float refractiveIndex = 0.0f;
+
 		glm::vec3 emissionColor{ 0.0f };
 		float emissionPower = 0.0f;
 

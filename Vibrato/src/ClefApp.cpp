@@ -12,18 +12,29 @@ public:
 	VibratoLayer()
 		: m_camera(45.0f, 0.1f, 100.0f) 
 	{
-		Vibrato::Material& emissive1 = m_scene.materials.emplace_back();
-		emissive1.albedo = { 0.8f, 0.5f, 0.2f };
-		emissive1.emissionColor = { 0.8f, 0.5f, 0.2f };
-		emissive1.emissionPower = 3.0f;
+		Vibrato::Material& emissive = m_scene.materials.emplace_back();
+		emissive.albedo = { 0.8f, 0.5f, 0.2f };
+		emissive.emissionColor = { 0.8f, 0.5f, 0.2f };
+		emissive.emissionPower = 3.0f;
 
-		Vibrato::Material& diffuse1 = m_scene.materials.emplace_back();
-		diffuse1.roughness = 0.1f;
-		diffuse1.albedo = { 0.7f, 0.7f, 0.7f };
+		Vibrato::Material& metal = m_scene.materials.emplace_back();
+		metal.roughness = 0.1f;
+		metal.albedo = { 0.7f, 0.7f, 0.7f };
 
-		Vibrato::Material& diffuse2 = m_scene.materials.emplace_back();
-		diffuse2.albedo = { 0.4f, 0.8f, 0.6f };
+		Vibrato::Material& glass = m_scene.materials.emplace_back();
+		glass.refractiveIndex = 1.5f;
 
+		Vibrato::Material& diffuse = m_scene.materials.emplace_back();
+		diffuse.albedo = { 0.4f, 0.8f, 0.6f };
+
+
+		{
+			Vibrato::Sphere sphere;
+			sphere.position = { 0.0f, 0.0f, -5.0f };
+			sphere.radius = 1.0f;
+			sphere.materialIndex = 0;
+			m_scene.spheres.push_back(sphere);
+		}
 
 		{
 			Vibrato::Sphere sphere;
@@ -37,15 +48,14 @@ public:
 			Vibrato::Sphere sphere;
 			sphere.position = { 1.5f, 0.0f, 0.0f };
 			sphere.radius = 1.0f;
-			sphere.materialIndex = 1;
+			sphere.materialIndex = 2;
 			m_scene.spheres.push_back(sphere);
 		}
-
 		{
 			Vibrato::Sphere sphere;
-			sphere.position = { 0.0f, 0.0f, -5.0f };
-			sphere.radius = 1.0f;
-			sphere.materialIndex = 0;
+			sphere.position = { 1.5f, 0.0f, 0.0f };
+			sphere.radius = -0.9f;
+			sphere.materialIndex = 2;
 			m_scene.spheres.push_back(sphere);
 		}
 
@@ -53,7 +63,7 @@ public:
 			Vibrato::Sphere sphere;
 			sphere.position = { 0.0f, -101.0f, 0.0f };
 			sphere.radius = 100.0f;
-			sphere.materialIndex = 2;
+			sphere.materialIndex = 3;
 			m_scene.spheres.push_back(sphere);
 		}
 
@@ -69,11 +79,13 @@ public:
 	{
 		ImGui::Begin("Tunings");
 
-		ImGui::Text("Render Time: %d FPS (%.3fms)", (int)(1000 / m_lastRenderTime), m_lastRenderTime);
-		ImGui::Checkbox("Accumulate Frames", &(m_renderer.getSettings().accumulate));
+		auto& settings = m_renderer.getSettings();
 
-		ImGui::InputInt("Rays Per Pixel", &(m_renderer.samplesPerPixel));
-		ImGui::InputInt("Ray Bounces", &(m_renderer.bounces));
+		ImGui::Text("Render Time: %d FPS (%.3fms)", (int)(1000 / m_lastRenderTime), m_lastRenderTime);
+		ImGui::Checkbox("Accumulate Frames", &(settings.accumulate));
+
+		ImGui::InputInt("Rays Per Pixel", &(settings.samplesPerPixel));
+		ImGui::InputInt("Ray Bounces", &(settings.bounces));
 
 		if (ImGui::Button("Render"))
 		{

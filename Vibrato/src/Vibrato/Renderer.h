@@ -18,6 +18,8 @@ namespace Vibrato
 		struct Settings
 		{
 			bool accumulate = true;
+			int samplesPerPixel = 1;
+			int bounces = 10;
 		};
 
 	public:
@@ -32,8 +34,6 @@ namespace Vibrato
 
 		Settings& getSettings() { return m_settings; }
 
-		int samplesPerPixel = 3;
-		int bounces = 10;
 
 	private:
 		struct HitPayload
@@ -41,6 +41,7 @@ namespace Vibrato
 			glm::vec3 position;
 			glm::vec3 normal;
 			float hitDistance;
+			bool frontFace;
 
 			int objectIndex;
 		};

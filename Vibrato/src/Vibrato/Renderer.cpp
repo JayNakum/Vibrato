@@ -5,6 +5,14 @@
 
 namespace Vibrato
 {
+	static double reflectance(double cosine, double ref_idx)
+	{
+		// Use Schlick's approximation for reflectance.
+		auto r0 = (1 - ref_idx) / (1 + ref_idx);
+		r0 = r0 * r0;
+		return r0 + (1 - r0) * pow((1 - cosine), 5);
+	}
+
 	void Renderer::onResize(uint32_t width, uint32_t height)
 	{
 		if (m_finalImage)
@@ -112,18 +120,18 @@ namespace Vibrato
 		glm::vec3 light(0.0f);
 		glm::vec3 contribution(1.0f); // throughput
 
-		for (size_t s = 0 ; s < samplesPerPixel ; s++)
+		for (size_t s = 0 ; s < m_settings.samplesPerPixel ; s++)
 		{
 			Ray ray;
 
 			ray.origin = m_activeCamera->getPosition();
 			
-			float jx = samplesPerPixel > 1 ? (float)x + Utils::randomFloat(seed) : (float)x;
-			float jy = samplesPerPixel > 1 ? (float)y + Utils::randomFloat(seed) : (float)y;
+			float jx = m_settings.samplesPerPixel > 1 ? (float)x + Utils::randomFloat(seed) : (float)x;
+			float jy = m_settings.samplesPerPixel > 1 ? (float)y + Utils::randomFloat(seed) : (float)y;
 
 			ray.direction = m_activeCamera->getRayDirection(jx, jy);
 
-			for (int i = 0; i < bounces; i++)
+			for (int i = 0; i < m_settings.bounces; i++)
 			{
 				seed += i;
 
@@ -143,18 +151,43 @@ namespace Vibrato
 				contribution *= material.albedo;
 				light += material.emission() * material.albedo;
 
-				ray.origin = payload.position + payload.normal * 0.0001f;
-
-				// ray.direction = glm::reflect(ray.direction, 
-				// 								payload.normal + material.roughness * Clef::Random::Vec3(-0.5f, 0.5f));
-				// ray.direction = glm::normalize(payload.normal + Clef::Random::InUnitSphere());
-				ray.direction = glm::normalize(
-					glm::reflect(
-						ray.direction, 
-						payload.normal + material.roughness * Utils::InUnitSphere(seed)
-					) + material.fuzz * Utils::InUnitSphere(seed)
-				);
+				glm::vec3 unitDirection = glm::normalize(ray.direction);
 				
+				if (material.refractiveIndex > 0)
+				{
+					auto e = payload.frontFace ? 1.0f / material.refractiveIndex : material.refractiveIndex;
+					double cosTheta = fmin(glm::dot(-unitDirection, payload.normal), 1.0);
+					double sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+
+					bool cannotRefract = e * sinTheta > 1.0;
+					
+					if (cannotRefract || reflectance(cosTheta, e) > Utils::randomFloat(seed))
+					{
+						ray.origin = payload.position + payload.normal * 0.0001f;
+						ray.direction = glm::reflect(
+							unitDirection,
+							payload.normal
+						);
+					}
+					else
+					{
+						ray.origin = payload.position - payload.normal * 0.0001f;
+						ray.direction = glm::refract(
+							unitDirection,
+							payload.normal,
+							e
+						);
+					}
+				}
+				else
+				{
+					ray.origin = payload.position + payload.normal * 0.0001f;
+					ray.direction = glm::reflect(
+						unitDirection,
+						payload.normal + material.roughness * Utils::InUnitSphere(seed)
+					) + material.fuzz * Utils::InUnitSphere(seed);
+				}
+
 				auto z = 1e-8;
 				if ((fabs(ray.direction[0]) < z) && (fabs(ray.direction[1]) < z) && (fabs(ray.direction[2]) < z))
 				{
@@ -163,7 +196,7 @@ namespace Vibrato
 			}
 		}
 
-		float scale = 1.0f / samplesPerPixel;
+		float scale = 1.0f / m_settings.samplesPerPixel;
 		light.r = std::sqrt(scale * light.r);
 		light.g = std::sqrt(scale * light.g);
 		light.b = std::sqrt(scale * light.b);
@@ -200,14 +233,17 @@ namespace Vibrato
 		payload.hitDistance = hitDistance;
 		payload.objectIndex = objectIndex;
 
-		const Hittable& closestObject = m_activeScene->spheres[objectIndex];
+		const Sphere& closestObject = m_activeScene->spheres[objectIndex];
 
-		glm::vec3 origin = ray.origin - closestObject.position;
+		// glm::vec3 origin = ray.origin - closestObject.position;
 
-		payload.position = origin + ray.direction * hitDistance;
-		payload.normal = glm::normalize(payload.position);
+		payload.position = ray.origin + ray.direction * hitDistance;
+		glm::vec3 outwardNormal = (payload.position - closestObject.position) / closestObject.radius;
 
-		payload.position += closestObject.position;
+		payload.frontFace = glm::dot(ray.direction, outwardNormal) < 0;
+		payload.normal = payload.frontFace ? outwardNormal : -outwardNormal;
+
+		// payload.position += closestObject.position;
 
 		return payload;
 	}
