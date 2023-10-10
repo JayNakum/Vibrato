@@ -12,7 +12,7 @@ class VibratoLayer : public Clef::Layer
 {
 public:
 	VibratoLayer()
-		: m_camera(20.0f, 0.1f, 100.0f) 
+		: m_camera(45.0f, 0.1f, 100.0f) 
 	{	
 		Vibrato::Material& groundMaterial = m_scene.materials.emplace_back();
 		groundMaterial.albedo = { 0.5f, 0.5f, 0.5f };
@@ -64,13 +64,14 @@ public:
 		//		}
 		//	}
 		//}
+		*/
 		
 		Vibrato::Material& dielectric = m_scene.materials.emplace_back();
 		dielectric.refractiveIndex = 1.5f;
 		{
 			auto& sphere = std::make_shared<Vibrato::Sphere>();
-			sphere->position = { 0.0f, 1.0f, 0.0f };
-			sphere->radius = 1.0f;
+			sphere->position = { 0.0f, 0.5f, 0.0f };
+			sphere->radius = 0.5f;
 			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
 			m_scene.objects.push_back(sphere);
 		}
@@ -79,8 +80,8 @@ public:
 		lambertian.albedo = { 0.8f, 0.5f, 0.0f };
 		{
 			auto& sphere = std::make_shared<Vibrato::Sphere>();
-			sphere->position = { -4.0f, 1.0f, 0.0f };
-			sphere->radius = 1.0f;
+			sphere->position = { -1.0f, 0.5f, -1.0f };
+			sphere->radius = 0.5f;
 			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
 			m_scene.objects.push_back(sphere);
 		}
@@ -90,24 +91,11 @@ public:
 		metal.roughness = 0.0f;
 		{
 			auto& sphere = std::make_shared<Vibrato::Sphere>();
-			sphere->position = { 4.0f, 1.0f, 0.0f };
-			sphere->radius = 1.0f;
+			sphere->position = { 1.0f, 0.5f, 1.0f };
+			sphere->radius = 0.5f;
 			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
 			m_scene.objects.push_back(sphere);
 		}
-		*/
-
-		Vibrato::Material& lambertian = m_scene.materials.emplace_back();
-		lambertian.albedo = { 0.8f, 0.5f, 0.0f };
-		{
-			auto& triangle = std::make_shared<Vibrato::Triangle>();
-			triangle->v0 = glm::vec3(-0.5f, -0.25f, 0.0f);
-			triangle->v1 = glm::vec3(0.5f, -0.25f, 0.0f);
-			triangle->v2 = glm::vec3(0.0f, 0.85f, 0.0f);
-			triangle->materialIndex = (int)(m_scene.materials.size() - 1);
-			m_scene.objects.push_back(triangle);
-		}
-
 	}
 
 	virtual void onUpdate(float ts) override

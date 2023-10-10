@@ -6,6 +6,4 @@ struct Ray
 {
 	glm::vec3 origin;
 	glm::vec3 direction;
-
-	mutable float hitDistance = FLT_MAX;
 };

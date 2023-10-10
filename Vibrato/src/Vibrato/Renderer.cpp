@@ -91,6 +91,7 @@ namespace Vibrato
 			}
 		});
 	#endif
+
 #else
 
 		for (uint32_t y = 0; y < m_finalImage->getHeight(); y++)
@@ -205,8 +206,6 @@ namespace Vibrato
 				{
 					ray.direction = payload.normal;
 				}
-
-				ray.hitDistance = FLT_MAX;
 			}
 		}
 
@@ -221,24 +220,37 @@ namespace Vibrato
 	HitPayload Renderer::traceRay(const Ray& ray)
 	{
 		int closestObject = -1;
-		HitPayload finalPayload;
+		float hitDistance = std::numeric_limits<float>::max();
 
-		HitPayload payload;
 		for (size_t i = 0; i < m_activeScene->objects.size(); i++)
 		{
 			const auto& object = m_activeScene->objects[i];
 			
-			if (object->intersect(ray, payload))
+			float closestT = object->intersect(ray);
+			if (closestT > 0.0f && closestT < hitDistance)
 			{
-				finalPayload = payload;
-				closestObject = i;
+				hitDistance = closestT;
+				closestObject = (int)i;
 			}
 		}
 
 		if (closestObject < 0)
 			return miss(ray);
 
-		return finalPayload;
+		return closestHit(ray, hitDistance, closestObject);
+	}
+
+	HitPayload Renderer::closestHit(const Ray& ray, float hitDistance, int objectIndex)
+	{
+		HitPayload payload;
+		payload.hitDistance = hitDistance;
+		payload.objectIndex = objectIndex;
+		payload.position = ray.origin + ray.direction * hitDistance;
+
+		const auto& closestObject = m_activeScene->objects[objectIndex];
+		closestObject->setHitPayload(ray, payload);
+
+		return payload;
 	}
 
 	HitPayload Renderer::miss(const Ray& ray)

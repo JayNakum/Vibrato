@@ -38,10 +38,11 @@ namespace Vibrato
 
 
 	private:
+
 		glm::vec4 perPixel(uint32_t x, uint32_t y); // RayGen Shader
 
 		HitPayload traceRay(const Ray& ray);
-		// HitPayload closestHit(const Ray& ray, int objectIndex); // ClosestHit Shader
+		HitPayload closestHit(const Ray& ray, float hitDistance, int objectIndex); // ClosestHit Shader
 		HitPayload miss(const Ray& ray); // Miss Shader
 
 	private:

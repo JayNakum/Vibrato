@@ -14,10 +14,7 @@ namespace Vibrato
 		: m_verticalFOV(verticalFOV), m_nearClip(nearClip), m_farClip(farClip)
 	{
 		m_forwardDirection = glm::vec3(0, 0, -1);
-		m_position = glm::vec3(13, 2, 3);
-
-		m_view = glm::lookAt(m_position, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-		m_inverseView = glm::inverse(m_view);
+		m_position = glm::vec3(0, 1, 5);
 	}
 
 	bool Camera::onUpdate(float ts)
