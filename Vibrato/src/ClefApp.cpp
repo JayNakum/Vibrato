@@ -138,7 +138,7 @@ public:
 		{
 			for (size_t i = 0; i < m_scene.objects.size(); ++i)
 			{
-				ImGui::PushID(i);
+				ImGui::PushID((int)i);
 				std::shared_ptr<Vibrato::Hittable> sphere = m_scene.objects[i];
 
 				ImGui::Text("\nSphere %d", (i + 1));
@@ -158,7 +158,7 @@ public:
 		{
 			for (size_t i = 0; i < m_scene.materials.size(); ++i)
 			{
-				ImGui::PushID(i);
+				ImGui::PushID((int)i);
 				Vibrato::Material& material = m_scene.materials[i];
 
 				ImGui::Text("\nMaterial Index %d", i);
@@ -219,8 +219,8 @@ public:
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 		ImGui::Begin("Viewport");
 
-		m_viewportWidth = ImGui::GetContentRegionAvail().x;
-		m_viewportHeight = ImGui::GetContentRegionAvail().y;
+		m_viewportWidth = (uint32_t)ImGui::GetContentRegionAvail().x;
+		m_viewportHeight = (uint32_t)ImGui::GetContentRegionAvail().y;
 
 		auto image = m_renderer.getFinalImage();
 		if (image)
