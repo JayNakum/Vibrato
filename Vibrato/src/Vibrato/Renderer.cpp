@@ -1,10 +1,12 @@
 #include "Renderer.h"
 
 #include "Clef/Random.h"
+
 #include "Utils.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include <glm/glm.hpp>
 
 #include <iostream>
 
@@ -89,7 +91,6 @@ namespace Vibrato
 			}
 		});
 	#endif
-
 #else
 
 		for (uint32_t y = 0; y < m_finalImage->getHeight(); y++)
@@ -146,18 +147,18 @@ namespace Vibrato
 			{
 				seed += i;
 
-				Renderer::HitPayload payload = traceRay(ray);
+				HitPayload payload = traceRay(ray);
 				if (payload.hitDistance < 0)
 				{
 					float a = 0.5 * (glm::normalize(ray.direction).y + 1.0);
 					glm::vec3 skyColor = (1.0f - a) * glm::vec3(1.0) + a * glm::vec3(0.5, 0.7, 1.0);
-					// glm::vec3 skyColor = CLEAR_COLOR;
+					//glm::vec3 skyColor = CLEAR_COLOR;
 					light += skyColor * contribution;
 					break;
 				}
 
-				const Sphere& closestSphere = m_activeScene->spheres[payload.objectIndex];
-				const Material& material = m_activeScene->materials[closestSphere.materialIndex];
+				const std::shared_ptr<Hittable> closestSphere = m_activeScene->objects[payload.objectIndex];
+				const Material& material = m_activeScene->materials[closestSphere->materialIndex];
 
 				contribution *= material.albedo;
 				light += material.emission() * material.albedo;
@@ -204,6 +205,8 @@ namespace Vibrato
 				{
 					ray.direction = payload.normal;
 				}
+
+				ray.hitDistance = FLT_MAX;
 			}
 		}
 
@@ -215,53 +218,32 @@ namespace Vibrato
 		return glm::vec4(light, 1.0f);
 	}
 
-	Renderer::HitPayload Renderer::traceRay(const Ray& ray)
+	HitPayload Renderer::traceRay(const Ray& ray)
 	{
-		float hitDistance = std::numeric_limits<float>::max();
 		int closestObject = -1;
+		HitPayload finalPayload;
 
-		for (size_t i = 0; i < m_activeScene->spheres.size(); i++)
+		HitPayload payload;
+		for (size_t i = 0; i < m_activeScene->objects.size(); i++)
 		{
-			const Sphere& sphere = m_activeScene->spheres[i];
+			const auto& object = m_activeScene->objects[i];
 			
-			float closestT = sphere.hit(ray);
-			if (closestT > 0.0f && closestT < hitDistance)
+			if (object->intersect(ray, payload))
 			{
-				hitDistance = closestT;
-				closestObject = (int)i;
+				finalPayload = payload;
+				closestObject = i;
 			}
 		}
 
 		if (closestObject < 0)
 			return miss(ray);
 
-		return closestHit(ray, hitDistance, closestObject);
+		return finalPayload;
 	}
 
-	Renderer::HitPayload Renderer::closestHit(const Ray& ray, float hitDistance, int objectIndex)
+	HitPayload Renderer::miss(const Ray& ray)
 	{
-		Renderer::HitPayload payload;
-		payload.hitDistance = hitDistance;
-		payload.objectIndex = objectIndex;
-
-		const Sphere& closestObject = m_activeScene->spheres[objectIndex];
-
-		// glm::vec3 origin = ray.origin - closestObject.position;
-
-		payload.position = ray.origin + ray.direction * hitDistance;
-		glm::vec3 outwardNormal = (payload.position - closestObject.position) / closestObject.radius;
-
-		payload.frontFace = glm::dot(ray.direction, outwardNormal) < 0;
-		payload.normal = payload.frontFace ? outwardNormal : -outwardNormal;
-
-		// payload.position += closestObject.position;
-
-		return payload;
-	}
-
-	Renderer::HitPayload Renderer::miss(const Ray& ray)
-	{
-		Renderer::HitPayload payload;
+		HitPayload payload;
 		payload.hitDistance = -1.0f;
 		return payload;
 	}

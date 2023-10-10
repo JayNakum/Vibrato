@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 #include <vector>
+#include <memory>
 
 namespace Vibrato
 {
@@ -36,9 +37,10 @@ namespace Vibrato
 		}
 	};
 
-	struct Scene
+	class Scene
 	{
-		std::vector<Sphere> spheres;
+	public:
+		std::vector <std::shared_ptr<Hittable>> objects;
 		std::vector<Material> materials;
 	};
 }

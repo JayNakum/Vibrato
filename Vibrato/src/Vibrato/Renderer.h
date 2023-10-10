@@ -2,11 +2,12 @@
 
 #include "Clef/Image.h"
 
+#include "HitPayload.h"
 #include "Camera.h"
 #include "Ray.h"
 #include "Scene.h"
 
-#include <glm/glm.hpp>
+#include <glm/vec4.hpp>
 #include <memory>
 #include <execution>
 
@@ -37,20 +38,10 @@ namespace Vibrato
 
 
 	private:
-		struct HitPayload
-		{
-			glm::vec3 position;
-			glm::vec3 normal;
-			float hitDistance;
-			bool frontFace;
-
-			int objectIndex;
-		};
-
 		glm::vec4 perPixel(uint32_t x, uint32_t y); // RayGen Shader
 
 		HitPayload traceRay(const Ray& ray);
-		HitPayload closestHit(const Ray& ray, float hitDistance, int objectIndex); // ClosestHit Shader
+		// HitPayload closestHit(const Ray& ray, int objectIndex); // ClosestHit Shader
 		HitPayload miss(const Ray& ray); // Miss Shader
 
 	private:

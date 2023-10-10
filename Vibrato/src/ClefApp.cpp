@@ -3,6 +3,7 @@
 #include "Vibrato/Renderer.h"
 #include "Vibrato/Utils.h"
 
+#include <memory>
 #include <glm/gtc/type_ptr.hpp>
 
 using namespace Clef;
@@ -16,83 +17,97 @@ public:
 		Vibrato::Material& groundMaterial = m_scene.materials.emplace_back();
 		groundMaterial.albedo = { 0.5f, 0.5f, 0.5f };
 		{
-			Vibrato::Sphere sphere;
-			sphere.position = { 0.0f, -1000.0f, 0.0f };
-			sphere.radius = 1000.0f;
-			sphere.materialIndex = (int)(m_scene.materials.size() - 1);
-			m_scene.spheres.push_back(sphere);
+			auto& sphere = std::make_shared<Vibrato::Sphere>();
+			sphere->position = { 0.0f, -1000.0f, 0.0f };
+			sphere->radius = 1000.0f;
+			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
+			m_scene.objects.push_back(sphere);
 		}
 
-		{
-			const int x = 3;
-			for (int a = -x; a < x; a++)
-			{
-				uint32_t seed = a * 2003;
-				for (int b = -x; b < x; b++)
-				{
-					float chooseMat = Utils::randomFloat(seed);
-					glm::vec3 pos{ a + 0.9 * Utils::randomFloat(seed), 0.2, b + 0.9 * Utils::randomFloat(seed) };
-					if ((pos - glm::vec3(4, 0.2, 0)).length() > 0.9)
-					{
-						Vibrato::Material& sphereMaterial = m_scene.materials.emplace_back();
+		/*
+		//{
+		//	const int x = 3;
+		//	for (int a = -x; a < x; a++)
+		//	{
+		//		uint32_t seed = a * 2003;
+		//		for (int b = -x; b < x; b++)
+		//		{
+		//			float chooseMat = Utils::randomFloat(seed);
+		//			glm::vec3 pos{ a + 0.9 * Utils::randomFloat(seed), 0.2, b + 0.9 * Utils::randomFloat(seed) };
+		//			if ((pos - glm::vec3(4, 0.2, 0)).length() > 0.9)
+		//			{
+		//				Vibrato::Material& sphereMaterial = m_scene.materials.emplace_back();
 
-						if (chooseMat < 0.8)
-						{
-							// diffuse
-							sphereMaterial.albedo = glm::vec3(Utils::randomFloat(seed), Utils::randomFloat(seed), Utils::randomFloat(seed));
-						}
-						else if (chooseMat < 0.95)
-						{
-							// metal
-							sphereMaterial.albedo = glm::vec3(Utils::randomFloat(seed, 0.5, 1), Utils::randomFloat(seed, 0.5, 1), Utils::randomFloat(seed, 0.5, 1));
-							sphereMaterial.fuzz = Utils::randomFloat(seed, 0, 0.5);
-						}
-						else
-						{
-							// glass
-							sphereMaterial.refractiveIndex = 1.5f;
-						}
-						
-						Vibrato::Sphere sphere;
-						sphere.position = pos;
-						sphere.radius = 0.2f;
-						sphere.materialIndex = (int)(m_scene.materials.size() - 1);
-						m_scene.spheres.push_back(sphere);
-					}
-				}
-			}
-		}
-
+		//				if (chooseMat < 0.8)
+		//				{
+		//					// diffuse
+		//					sphereMaterial.albedo = glm::vec3(Utils::randomFloat(seed), Utils::randomFloat(seed), Utils::randomFloat(seed));
+		//				}
+		//				else if (chooseMat < 0.95)
+		//				{
+		//					// metal
+		//					sphereMaterial.albedo = glm::vec3(Utils::randomFloat(seed, 0.5, 1), Utils::randomFloat(seed, 0.5, 1), Utils::randomFloat(seed, 0.5, 1));
+		//					sphereMaterial.fuzz = Utils::randomFloat(seed, 0, 0.5);
+		//				}
+		//				else
+		//				{
+		//					// glass
+		//					sphereMaterial.refractiveIndex = 1.5f;
+		//				}
+		//				
+		//				auto& sphere = std::make_shared<Vibrato::Sphere>();
+		//				sphere->position = pos;
+		//				sphere->radius = 0.2f;
+		//				sphere->materialIndex = (int)(m_scene.materials.size() - 1);
+		//				m_scene.objects.push_back(sphere);
+		//			}
+		//		}
+		//	}
+		//}
+		
 		Vibrato::Material& dielectric = m_scene.materials.emplace_back();
 		dielectric.refractiveIndex = 1.5f;
 		{
-			Vibrato::Sphere sphere;
-			sphere.position = { 0.0f, 1.0f, 0.0f };
-			sphere.radius = 1.0f;
-			sphere.materialIndex = (int)(m_scene.materials.size() - 1);
-			m_scene.spheres.push_back(sphere);
+			auto& sphere = std::make_shared<Vibrato::Sphere>();
+			sphere->position = { 0.0f, 1.0f, 0.0f };
+			sphere->radius = 1.0f;
+			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
+			m_scene.objects.push_back(sphere);
 		}
 
 		Vibrato::Material& lambertian = m_scene.materials.emplace_back();
-		lambertian.albedo = { 0.4f, 0.2f, 0.1f };
+		lambertian.albedo = { 0.8f, 0.5f, 0.0f };
 		{
-			Vibrato::Sphere sphere;
-			sphere.position = { -4.0f, 1.0f, 0.0f };
-			sphere.radius = 1.0f;
-			sphere.materialIndex = (int)(m_scene.materials.size() - 1);
-			m_scene.spheres.push_back(sphere);
+			auto& sphere = std::make_shared<Vibrato::Sphere>();
+			sphere->position = { -4.0f, 1.0f, 0.0f };
+			sphere->radius = 1.0f;
+			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
+			m_scene.objects.push_back(sphere);
 		}
 
 		Vibrato::Material& metal = m_scene.materials.emplace_back();
 		metal.albedo = { 0.7f, 0.6f, 0.5f };
 		metal.roughness = 0.0f;
 		{
-			Vibrato::Sphere sphere;
-			sphere.position = { 4.0f, 1.0f, 0.0f };
-			sphere.radius = 1.0f;
-			sphere.materialIndex = (int)(m_scene.materials.size() - 1);
-			m_scene.spheres.push_back(sphere);
+			auto& sphere = std::make_shared<Vibrato::Sphere>();
+			sphere->position = { 4.0f, 1.0f, 0.0f };
+			sphere->radius = 1.0f;
+			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
+			m_scene.objects.push_back(sphere);
 		}
+		*/
+
+		Vibrato::Material& lambertian = m_scene.materials.emplace_back();
+		lambertian.albedo = { 0.8f, 0.5f, 0.0f };
+		{
+			auto& triangle = std::make_shared<Vibrato::Triangle>();
+			triangle->v0 = glm::vec3(-0.5f, -0.25f, 0.0f);
+			triangle->v1 = glm::vec3(0.5f, -0.25f, 0.0f);
+			triangle->v2 = glm::vec3(0.0f, 0.85f, 0.0f);
+			triangle->materialIndex = (int)(m_scene.materials.size() - 1);
+			m_scene.objects.push_back(triangle);
+		}
+
 	}
 
 	virtual void onUpdate(float ts) override
@@ -133,15 +148,15 @@ public:
 		
 		if (ImGui::TreeNode("Objects"))
 		{
-			for (size_t i = 0; i < m_scene.spheres.size(); ++i)
+			for (size_t i = 0; i < m_scene.objects.size(); ++i)
 			{
 				ImGui::PushID(i);
-				Vibrato::Sphere& sphere = m_scene.spheres[i];
+				std::shared_ptr<Vibrato::Hittable> sphere = m_scene.objects[i];
 
 				ImGui::Text("\nSphere %d", (i + 1));
-				ImGui::DragFloat3("Position", glm::value_ptr(sphere.position), 0.1f);
-				ImGui::DragFloat("Radius", &(sphere.radius), 0.1f, 0.0f);
-				ImGui::DragInt("Material", &(sphere.materialIndex), 1.0f, 0, (int)(m_scene.materials.size() - 1));
+				ImGui::DragFloat3("Position", glm::value_ptr(sphere->position), 0.1f);
+				// ImGui::DragFloat("Radius", &(sphere.radius), 0.1f, 0.0f);
+				ImGui::DragInt("Material", &(sphere->materialIndex), 1.0f, 0, (int)(m_scene.materials.size() - 1));
 
 				ImGui::Text("");
 				ImGui::Separator();
