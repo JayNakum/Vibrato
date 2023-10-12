@@ -14,7 +14,7 @@ namespace Vibrato
 		: m_verticalFOV(verticalFOV), m_nearClip(nearClip), m_farClip(farClip)
 	{
 		m_forwardDirection = glm::vec3(0, 0, -1);
-		m_position = glm::vec3(0, 10, 50);
+		m_position = glm::vec3(0, 1, 5);
 	}
 
 	bool Camera::onUpdate(float ts)
