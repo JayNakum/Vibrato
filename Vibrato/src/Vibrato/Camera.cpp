@@ -14,7 +14,7 @@ namespace Vibrato
 		: m_verticalFOV(verticalFOV), m_nearClip(nearClip), m_farClip(farClip)
 	{
 		m_forwardDirection = glm::vec3(0, 0, -1);
-		m_position = glm::vec3(0, 1, 5);
+		m_position = glm::vec3(0, 10, 50);
 	}
 
 	bool Camera::onUpdate(float ts)
@@ -76,8 +76,12 @@ namespace Vibrato
 			float pitchDelta = delta.y * getRotationSpeed();
 			float yawDelta = delta.x * getRotationSpeed();
 
-			glm::quat q = glm::normalize(glm::cross(glm::angleAxis(-pitchDelta, rightDirection),
-																							glm::angleAxis(-yawDelta, glm::vec3(0.f, 1.0f, 0.0f))));
+			glm::quat q = glm::normalize(
+				glm::cross(
+					glm::angleAxis(-pitchDelta, rightDirection),
+					glm::angleAxis(-yawDelta, glm::vec3(0.f, 1.0f, 0.0f))
+				)
+			);
 			m_forwardDirection = glm::rotate(q, m_forwardDirection);
 
 			moved = true;

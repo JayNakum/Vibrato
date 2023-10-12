@@ -14,6 +14,7 @@ public:
 	VibratoLayer()
 		: m_camera(45.0f, 0.1f, 100.0f) 
 	{	
+		/*
 		Vibrato::Material& groundMaterial = m_scene.materials.emplace_back();
 		groundMaterial.albedo = { 0.5f, 0.5f, 0.5f };
 		{
@@ -23,8 +24,7 @@ public:
 			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
 			m_scene.objects.push_back(sphere);
 		}
-
-		/*
+		
 		//{
 		//	const int x = 3;
 		//	for (int a = -x; a < x; a++)
@@ -64,7 +64,6 @@ public:
 		//		}
 		//	}
 		//}
-		*/
 		
 		Vibrato::Material& dielectric = m_scene.materials.emplace_back();
 		dielectric.refractiveIndex = 1.5f;
@@ -96,6 +95,30 @@ public:
 			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
 			m_scene.objects.push_back(sphere);
 		}
+		*/
+
+		Vibrato::Material& metal = m_scene.materials.emplace_back();
+		metal.albedo = { 0.7f, 0.6f, 0.5f };
+		metal.roughness = 0.0f;
+		/*{
+			Vibrato::Vertex v0;
+			v0.P = { 0.0f, 0.5f, 0.0f };
+			Vibrato::Vertex v1;
+			v1.P = { 0.5f, -0.5f, 0.0f };
+			Vibrato::Vertex v2;
+			v2.P = { -0.5f, -0.5f, 0.0f };
+
+			auto& triangle = std::make_shared<Vibrato::Triangle>(v0, v1, v2);
+			triangle->materialIndex = (int)(m_scene.materials.size() - 1);
+			m_scene.objects.push_back(triangle);
+		}*/
+
+		{
+			auto& model = std::make_shared<Vibrato::TriangleMesh>("obj\\dino.obj");
+			model->materialIndex = (int)(m_scene.materials.size() - 1);
+			m_scene.objects.push_back(model);
+		}
+
 	}
 
 	virtual void onUpdate(float ts) override
@@ -124,11 +147,10 @@ public:
 			render();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Save"))
+		if (ImGui::Button("Screenshot"))
 		{
 			m_renderer.screenshot();
 		}
-
 
 		ImGui::End();
 
@@ -139,12 +161,12 @@ public:
 			for (size_t i = 0; i < m_scene.objects.size(); ++i)
 			{
 				ImGui::PushID((int)i);
-				std::shared_ptr<Vibrato::Hittable> sphere = m_scene.objects[i];
+				std::shared_ptr<Vibrato::Hittable> object = m_scene.objects[i];
 
-				ImGui::Text("\nSphere %d", (i + 1));
-				ImGui::DragFloat3("Position", glm::value_ptr(sphere->position), 0.1f);
-				// ImGui::DragFloat("Radius", &(sphere.radius), 0.1f, 0.0f);
-				ImGui::DragInt("Material", &(sphere->materialIndex), 1.0f, 0, (int)(m_scene.materials.size() - 1));
+				ImGui::Text("\nObject %d", (i + 1));
+				ImGui::DragFloat3("Position", glm::value_ptr(object->position), 0.1f);
+				// ImGui::DragFloat("Radius", &(object.radius), 0.1f, 0.0f);
+				ImGui::DragInt("Material", &(object->materialIndex), 1.0f, 0, (int)(m_scene.materials.size() - 1));
 
 				ImGui::Text("");
 				ImGui::Separator();
