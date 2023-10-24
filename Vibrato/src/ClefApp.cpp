@@ -24,46 +24,6 @@ public:
 			m_scene.objects.push_back(sphere);
 		}
 		
-		{
-			const int x = 3;
-			for (int a = -x; a < x; a++)
-			{
-				uint32_t seed = a * 2003;
-				for (int b = -x; b < x; b++)
-				{
-					float chooseMat = Utils::randomFloat(seed);
-					glm::vec3 pos{ a + 0.9 * Utils::randomFloat(seed), 0.2, b + 0.9 * Utils::randomFloat(seed) };
-					if ((pos - glm::vec3(4, 0.2, 0)).length() > 0.9)
-					{
-						Vibrato::Material& sphereMaterial = m_scene.materials.emplace_back();
-
-						if (chooseMat < 0.8)
-						{
-							// diffuse
-							sphereMaterial.albedo = glm::vec3(Utils::randomFloat(seed), Utils::randomFloat(seed), Utils::randomFloat(seed));
-						}
-						else if (chooseMat < 0.95)
-						{
-							// metal
-							sphereMaterial.albedo = glm::vec3(Utils::randomFloat(seed, 0.5, 1), Utils::randomFloat(seed, 0.5, 1), Utils::randomFloat(seed, 0.5, 1));
-							sphereMaterial.fuzz = Utils::randomFloat(seed, 0, 0.5);
-						}
-						else
-						{
-							// glass
-							sphereMaterial.refractiveIndex = 1.5f;
-						}
-						
-						auto& sphere = std::make_shared<Vibrato::Sphere>();
-						sphere->position = pos;
-						sphere->radius = 0.2f;
-						sphere->materialIndex = (int)(m_scene.materials.size() - 1);
-						m_scene.objects.push_back(sphere);
-					}
-				}
-			}
-		}
-		
 		Vibrato::Material& dielectric = m_scene.materials.emplace_back();
 		dielectric.refractiveIndex = 1.5f;
 		{
@@ -94,6 +54,18 @@ public:
 			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
 			m_scene.objects.push_back(sphere);
 		}
+
+
+		/*Vibrato::Material& test = m_scene.materials.emplace_back();
+		test.albedo = { 115.0 / 255.0, 161.0 / 255.0, 108.0 / 255.0 };
+		{
+			auto& testObj = Vibrato::TriangleMesh("./obj/torus.obj");
+			for (const auto& tri : testObj.triangles)
+			{
+				tri->materialIndex = (int)(m_scene.materials.size() - 1);
+				m_scene.objects.push_back(tri);
+			}
+		}*/
 	}
 
 	virtual void onUpdate(float ts) override

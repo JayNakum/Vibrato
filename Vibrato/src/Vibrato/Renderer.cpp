@@ -138,73 +138,72 @@ namespace Vibrato
 			Ray ray;
 
 			ray.origin = m_activeCamera->getPosition();
-			
-			float jx = m_settings.samplesPerPixel > 1 ? (float)x + Utils::randomFloat(seed) : (float)x;
-			float jy = m_settings.samplesPerPixel > 1 ? (float)y + Utils::randomFloat(seed) : (float)y;
-
-			ray.direction = m_activeCamera->getRayDirection(jx, jy);
+			ray.direction = m_activeCamera->getRayDirections()[x + y * m_finalImage->getWidth()];
 
 			for (int i = 0; i < m_settings.bounces; i++)
 			{
 				seed += i;
 
 				HitPayload payload = traceRay(ray);
-				if (payload.hitDistance < 0)
+				if (payload.hitDistance >= 0)
+				{
+					const std::shared_ptr<Hittable> closestSphere = m_activeScene->objects[payload.objectIndex];
+					const Material& material = m_activeScene->materials[closestSphere->materialIndex];
+
+					contribution *= material.albedo;
+					light += material.emission() * material.albedo;
+
+					glm::vec3 unitDirection = glm::normalize(ray.direction);
+
+					if (material.refractiveIndex > 0)
+					{
+						auto e = payload.frontFace ? 1.0f / material.refractiveIndex : material.refractiveIndex;
+						double cosTheta = fmin(glm::dot(-unitDirection, payload.normal), 1.0);
+						double sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+
+						bool cannotRefract = e * sinTheta > 1.0;
+
+						if (cannotRefract || reflectance(cosTheta, e) > Utils::randomFloat(seed))
+						{
+							ray.origin = payload.position + payload.normal * 0.0001f;
+							ray.direction = glm::reflect(
+								unitDirection,
+								payload.normal
+							);
+						}
+						else
+						{
+							ray.origin = payload.position - payload.normal * 0.0001f;
+							ray.direction = glm::refract(
+								unitDirection,
+								payload.normal,
+								e
+							);
+						}
+					}
+					else
+					{
+						ray.origin = payload.position + payload.normal * 0.0001f;
+						ray.direction = glm::reflect(
+							unitDirection,
+							payload.normal + material.roughness * Utils::InUnitSphere(seed)
+						) + material.fuzz * Utils::InUnitSphere(seed);
+					}
+
+					auto z = 1e-8;
+					if ((fabs(ray.direction[0]) < z) && (fabs(ray.direction[1]) < z) && (fabs(ray.direction[2]) < z))
+					{
+						ray.direction = payload.normal;
+					}
+					
+				}
+				else
 				{
 					float a = 0.5 * (glm::normalize(ray.direction).y + 1.0);
 					glm::vec3 skyColor = (1.0f - a) * glm::vec3(1.0) + a * glm::vec3(0.5, 0.7, 1.0);
 					//glm::vec3 skyColor = CLEAR_COLOR;
 					light += skyColor * contribution;
 					break;
-				}
-
-				const std::shared_ptr<Hittable> closestSphere = m_activeScene->objects[payload.objectIndex];
-				const Material& material = m_activeScene->materials[closestSphere->materialIndex];
-
-				contribution *= material.albedo;
-				light += material.emission() * material.albedo;
-
-				glm::vec3 unitDirection = glm::normalize(ray.direction);
-				
-				if (material.refractiveIndex > 0)
-				{
-					auto e = payload.frontFace ? 1.0f / material.refractiveIndex : material.refractiveIndex;
-					double cosTheta = fmin(glm::dot(-unitDirection, payload.normal), 1.0);
-					double sinTheta = sqrt(1.0 - cosTheta * cosTheta);
-
-					bool cannotRefract = e * sinTheta > 1.0;
-					
-					if (cannotRefract || reflectance(cosTheta, e) > Utils::randomFloat(seed))
-					{
-						ray.origin = payload.position + payload.normal * 0.0001f;
-						ray.direction = glm::reflect(
-							unitDirection,
-							payload.normal
-						);
-					}
-					else
-					{
-						ray.origin = payload.position - payload.normal * 0.0001f;
-						ray.direction = glm::refract(
-							unitDirection,
-							payload.normal,
-							e
-						);
-					}
-				}
-				else
-				{
-					ray.origin = payload.position + payload.normal * 0.0001f;
-					ray.direction = glm::reflect(
-						unitDirection,
-						payload.normal + material.roughness * Utils::InUnitSphere(seed)
-					) + material.fuzz * Utils::InUnitSphere(seed);
-				}
-
-				auto z = 1e-8;
-				if ((fabs(ray.direction[0]) < z) && (fabs(ray.direction[1]) < z) && (fabs(ray.direction[2]) < z))
-				{
-					ray.direction = payload.normal;
 				}
 			}
 		}

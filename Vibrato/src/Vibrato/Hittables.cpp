@@ -14,8 +14,8 @@ namespace Vibrato
 
 		float discriminant = half_b * half_b - a * c;
 
-		/*if (discriminant < 0.0f)
-		 	return false;*/
+		if (discriminant < 0.0f)
+		 	return -1.0;
 
 		// float t0 = (-b + glm::sqrt(discriminant)) / (2.0f * a);
 		return ((-half_b - glm::sqrt(discriminant)) / a);
@@ -53,7 +53,7 @@ namespace Vibrato
 		glm::vec3 pvec = glm::cross(ray.direction, e2);
 		float det = glm::dot(e1, pvec);
 
-		if (det == 0.0f) return t;
+		if (det < 0.0f) return t;
 		
 		float inv_det = 1.0f / det;
 		glm::vec3 tvec = ray.origin - v0;
@@ -166,7 +166,7 @@ namespace Vibrato
 		// Loops vertices
 		for (int i = 0; i < vertices.size() / 3; ++i)
 		{
-			tris.push_back(std::make_shared<Triangle>(vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2]));
+			triangles.push_back(std::make_shared<Triangle>(vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2]));
 		}
 
 		std::cout << "> Successfully opened " << inputfile << "! \n\n";
@@ -175,7 +175,7 @@ namespace Vibrato
 		materials.clear();
 	}
 
-	float TriangleMesh::intersect(const Ray& r) const
+	/*float TriangleMesh::intersect(const Ray& r) const
 	{
 		float t = 0.0f;
 		long triangles_size = tris.size();
@@ -206,5 +206,5 @@ namespace Vibrato
 				payload.AOV = bary;
 			}
 		}	
-	}
+	}*/
 }

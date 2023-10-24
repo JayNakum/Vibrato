@@ -58,15 +58,15 @@ namespace Vibrato
         glm::vec2 uv[3];
     };
 
-    class TriangleMesh : public Hittable
+    class TriangleMesh
     {
     public:
         TriangleMesh(const char* filePath);
-        float intersect(const Ray& r) const override;
-		void setHitPayload(const Ray& ray, HitPayload& payload) const override;
+        // float intersect(const Ray& r) const override;
+		// void setHitPayload(const Ray& ray, HitPayload& payload) const override;
     public:
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
-        std::vector<std::shared_ptr<Triangle> > tris;
+        std::vector<std::shared_ptr<Triangle> > triangles;
     };
 }
