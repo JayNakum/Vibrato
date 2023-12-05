@@ -57,7 +57,7 @@ namespace Vibrato
 		const Scene* m_activeScene = nullptr;
 		const Camera* m_activeCamera = nullptr;
 
-		const glm::vec4 CLEAR_COLOR = glm::vec4(0.07f, 0.07f, 0.07f, 1.0f);
+		const glm::vec4 CLEAR_COLOR = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
 
 		uint32_t m_frameIndex = 1;
 	};

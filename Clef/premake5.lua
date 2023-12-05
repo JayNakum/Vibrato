@@ -13,7 +13,6 @@ project "Clef"
 
     "../vendor/imgui",
     "../vendor/glfw/include",
-    "../vendor/glm",
     "../vendor/stb_image",
     
     "%{IncludeDir.VulkanSDK}",

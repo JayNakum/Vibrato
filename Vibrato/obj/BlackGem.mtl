@@ -1,0 +1,16 @@
+# Blender MTL File: 'BlackGem.blend'
+# Material Count: 1
+
+newmtl Black
+Ns 390.196078
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd Gem2 - Normal.jpg
+map_Bump Gem2 - Normal.jpg
+map_Ks Gem1 - Specular.jpg
+map_Ns Gem1 - Specular.jpg

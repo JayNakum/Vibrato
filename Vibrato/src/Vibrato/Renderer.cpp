@@ -200,8 +200,8 @@ namespace Vibrato
 				else
 				{
 					float a = 0.5 * (glm::normalize(ray.direction).y + 1.0);
-					glm::vec3 skyColor = (1.0f - a) * glm::vec3(1.0) + a * glm::vec3(0.5, 0.7, 1.0);
-					//glm::vec3 skyColor = CLEAR_COLOR;
+					// glm::vec3 skyColor = (1.0f - a) * glm::vec3(1.0) + a * glm::vec3(0.5, 0.7, 1.0);
+					glm::vec3 skyColor = CLEAR_COLOR;
 					light += skyColor * contribution;
 					break;
 				}

@@ -11,9 +11,7 @@ project "Vibrato"
   {
     "../vendor/imgui",
     "../vendor/glfw/include",
-    "../vendor/glm",
     "../vendor/stb_image",
-    "../vendor/fast_obj",
 
     "../Clef/src",
 

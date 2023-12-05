@@ -5,8 +5,8 @@
 struct HitPayload
 {
 	glm::vec3 position;
-	glm::vec3 normal;
 	float hitDistance;
+	glm::vec3 normal;
 	bool frontFace;
 	glm::vec3 AOV;
 	int objectIndex;

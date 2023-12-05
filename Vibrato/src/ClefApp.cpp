@@ -15,7 +15,7 @@ public:
 		: m_camera(45.0f, 0.1f, 100.0f) 
 	{	
 		Vibrato::Material& groundMaterial = m_scene.materials.emplace_back();
-		groundMaterial.albedo = { 0.5f, 0.5f, 0.5f };
+		groundMaterial.albedo = { 1.0f, 1.0f, 1.0f };
 		{
 			auto& sphere = std::make_shared<Vibrato::Sphere>();
 			sphere->position = { 0.0f, -1000.0f, 0.0f };
@@ -24,21 +24,24 @@ public:
 			m_scene.objects.push_back(sphere);
 		}
 		
+		Vibrato::Material& lambertian = m_scene.materials.emplace_back();
+		lambertian.albedo = { 0.8f, 0.5f, 0.2f };
+		lambertian.emissionColor = { 0.8f, 0.5f, 0.2f };
+		lambertian.emissionPower = 5.0f;
+		{
+			auto& sphere = std::make_shared<Vibrato::Sphere>();
+			sphere->position = { -4.0f, 4.0f, -3.0f };
+			sphere->radius = 1.0f;
+			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
+			m_scene.objects.push_back(sphere);
+		}
+
+		/*
 		Vibrato::Material& dielectric = m_scene.materials.emplace_back();
 		dielectric.refractiveIndex = 1.5f;
 		{
 			auto& sphere = std::make_shared<Vibrato::Sphere>();
 			sphere->position = { 0.0f, 0.5f, 0.0f };
-			sphere->radius = 0.5f;
-			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
-			m_scene.objects.push_back(sphere);
-		}
-
-		Vibrato::Material& lambertian = m_scene.materials.emplace_back();
-		lambertian.albedo = { 0.8f, 0.5f, 0.0f };
-		{
-			auto& sphere = std::make_shared<Vibrato::Sphere>();
-			sphere->position = { -1.0f, 0.5f, -1.0f };
 			sphere->radius = 0.5f;
 			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
 			m_scene.objects.push_back(sphere);
@@ -53,19 +56,20 @@ public:
 			sphere->radius = 0.5f;
 			sphere->materialIndex = (int)(m_scene.materials.size() - 1);
 			m_scene.objects.push_back(sphere);
-		}
+		}*/
 
 
-		/*Vibrato::Material& test = m_scene.materials.emplace_back();
-		test.albedo = { 115.0 / 255.0, 161.0 / 255.0, 108.0 / 255.0 };
+		Vibrato::Material& test = m_scene.materials.emplace_back();
+		test.albedo = { 0.9f, 0.9f, 0.9f };
+		test.refractiveIndex = 2.42f;
 		{
-			auto& testObj = Vibrato::TriangleMesh("./obj/torus.obj");
+			auto& testObj = Vibrato::TriangleMesh("./obj/gem.obj");
 			for (const auto& tri : testObj.triangles)
 			{
 				tri->materialIndex = (int)(m_scene.materials.size() - 1);
 				m_scene.objects.push_back(tri);
 			}
-		}*/
+		}
 	}
 
 	virtual void onUpdate(float ts) override
@@ -94,7 +98,7 @@ public:
 			render();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Screenshot"))
+		if (ImGui::Button("Save"))
 		{
 			m_renderer.screenshot();
 		}
